@@ -1,8 +1,9 @@
-FROM python:3.11.3-alpine3.17
+FROM python:3.11.4-alpine3.18
 
 COPY requirements.txt .
 
 RUN echo "Installing packages..." \
+  && apk update \
   && apk add --no-cache curl
 
 RUN echo "Installing python libraries..." \
