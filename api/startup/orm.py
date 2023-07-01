@@ -22,7 +22,10 @@ def connect_to_db(app: FastAPI) -> None:
             "apps": {
                 "api": {
                     "models": [
-                        "api.models.user",
+                        "api.models.measurement",
+                        "api.models.sensor",
+                        "api.models.device",
+                        "api.models.user"
                     ],
                 }
             },
