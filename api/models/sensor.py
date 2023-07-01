@@ -11,3 +11,6 @@ class Sensor(AbstractBaseModel):
         fields.CASCADE)
     unit = fields.CharField(max_length=32, null=True)
     measurements = fields.ReverseRelation["Measurement"]
+
+    class Meta:
+        unique_together = (("name", "device"),)

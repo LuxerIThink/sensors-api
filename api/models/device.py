@@ -12,3 +12,6 @@ class Device(AbstractBaseModel):
     )
     is_read_public = fields.BooleanField(default=False)
     sensors = fields.ReverseRelation["Sensor"]
+
+    class Meta:
+        unique_together = (("name", "user"),)
