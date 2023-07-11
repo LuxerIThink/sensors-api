@@ -9,14 +9,7 @@ from api.models.user import User
 async def init_db() -> None:
     await Tortoise.init(
         db_url="sqlite://:memory:",
-        modules={
-             'api': [
-                'api.models.measurement',
-                'api.models.sensor',
-                'api.models.device',
-                'api.models.user'
-            ]
-        }
+        modules={'api': ['api.models', ]}
     )
     await Tortoise.generate_schemas()
 

@@ -19,18 +19,8 @@ def connect_to_db(app: FastAPI) -> None:
                     },
                 }
             },
-            "apps": {
-                "api": {
-                    "models": [
-                        "api.models.measurement",
-                        "api.models.sensor",
-                        "api.models.device",
-                        "api.models.user"
-                    ],
-                }
-            },
+            "apps": {"api": {"models": ["api.models", ], }},
         },
         generate_schemas=True,
         add_exception_handlers=True,
     )
-
