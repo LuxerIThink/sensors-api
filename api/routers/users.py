@@ -7,6 +7,7 @@ router = APIRouter(
     tags=["users"],
 )
 
+
 @router.post(
     "/", response_model=UserOutPydantic
 )
