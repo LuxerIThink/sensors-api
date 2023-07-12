@@ -2,11 +2,14 @@ from tortoise import fields
 from .abstract import AbstractBaseModel
 from tortoise.contrib.pydantic import pydantic_model_creator
 from ..startup.security import password_hasher
+from tortoise.validators import MinLengthValidator
+from tortoise.exceptions import ValidationError
 
 
 class User(AbstractBaseModel):
-    username = fields.CharField(max_length=32, unique=True)
-    password = fields.TextField(max_length=128)
+    username = fields.CharField(max_length=32, unique=True,
+                                validators=[MinLengthValidator(3)])
+    password = fields.CharField(max_length=128)
     email = fields.CharField(max_length=32, unique=True)
     devices = fields.ReverseRelation["Device"]
 
