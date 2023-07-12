@@ -28,5 +28,30 @@ async def test_create_user_api(client):
     user = await User.filter(username=username).first()
     assert user.password != password
 
+    # Check add existing user
+    response = client.post("/users/", json=data)
+
+    assert response.status_code == 422
+
+    # Incorrect lengths
+    incorrect_data = {
+        "username": "luxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "password": "password",
+        "email": "x@y"
+    }
+
+    response = client.post("/users/", json=incorrect_data)
+    assert response.status_code == 422
+
+    # Incorrect lengths
+    incorrect_data = {
+        "username": "lx",
+        "password": "password",
+        "email": "x@y"
+    }
+
+    response = client.post("/users/", json=incorrect_data)
+    assert response.status_code == 422
+
 
 
