@@ -7,5 +7,4 @@ argon2-cffi==21.3.0
 pytest==7.4.0
 pytest-asyncio==0.21.0
 httpx==0.24.1
-
-
+password-strength==0.0.3.post2
