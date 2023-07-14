@@ -60,15 +60,37 @@ class TestCreateUserAPI:
         response = client.post("/users/", json=input_data)
         assert response.status_code == 422
 
-    # Incorrect lengths
-    incorrect_data = {
-        "username": "lx",
-        "password": "password",
-        "email": "x@y"
-    }
+    @pytest.mark.parametrize("input_data", [
+        ({
+            "username": "username1",
+            "password": "",
+            "email": "yyy@xyz.pl"
+        }),
+        ({
+            "username": "username2",
+            "password": "7_Chars",
+            "email": "xyz@xyz.com"
+        }),
+        ({
+            "username": "username3",
+            "password": "No_Numbers",
+            "email": "xyz@xyz.net"
+        }),
+        ({
+            "username": "username4",
+            "password": "0_upper_cases",
+            "email": "xyz@zyx.pl"
+        }),
+        ({
+            "username": "username5",
+            "password": "0Specials",
+            "email": "xyz@mail.com"
+        }),
+    ])
+    async def test_incorrect_password(self, client, input_data):
+        response = client.post("/users/", json=input_data)
+        assert response.status_code == 422
 
-    response = client.post("/users/", json=incorrect_data)
-    assert response.status_code == 422
 
 
 
