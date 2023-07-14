@@ -3,45 +3,62 @@ from api.models.user import User
 
 
 @pytest.mark.anyio
-async def test_create_user_api(client):
-    username, password, email = "luxer", "xyz12345", "xyz@xyz.pl"
+class TestCreateUserAPI:
 
-    # Verify that the user does not exist before creating
-    assert await User.filter(username=username).first() is None
+    @pytest.mark.parametrize("input_data", [
+        ({
+            "username": "correct_username",
+            "password": "C0r_pass",
+            "email": "email@xyz.com"
+        })
+    ])
+    async def test_create_user(self, client, input_data):
+        response = client.post("/users/", json=input_data)
+        assert response.status_code == 200
 
-    data = {
-        "username": username,
-        "password": password,
-        "email": email
-    }
+        output_data = response.json()
+        self._check_output_with_input(output_data, input_data)
+        await self._check_password_hashed(input_data['username'], input_data['password'])
 
-    response = client.post("/users/", json=data)
+    @staticmethod
+    def _check_output_with_input(output_data, input_data):
+        assert output_data['uuid']
+        assert output_data['username'] == input_data['username']
+        assert 'password' not in output_data
+        assert output_data['email'] == input_data['email']
 
-    assert response.status_code == 200
-    user_data = response.json()
+    @staticmethod
+    async def _check_password_hashed(username, password):
+        user = await User.filter(username=username).first()
+        assert user.password != password
 
-    assert user_data['uuid']
-    assert user_data['username'] == username
-    assert 'password' not in user_data
-    assert user_data['email'] == email
+    @pytest.mark.parametrize("input_data", [
+        ({
+            "username": "username",
+            "password": "",
+            "email": "xyz@xyz.com"
+        })
+    ])
+    async def assert_existing_user(self, client, input_data):
+        client.post("/users/", json=input_data)
+        response = client.post("/users/", json=input_data)
+        assert response.status_code == 422
 
-    user = await User.filter(username=username).first()
-    assert user.password != password
-
-    # Check add existing user
-    response = client.post("/users/", json=data)
-
-    assert response.status_code == 422
-
-    # Incorrect lengths
-    incorrect_data = {
-        "username": "luxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        "password": "password",
-        "email": "x@y"
-    }
-
-    response = client.post("/users/", json=incorrect_data)
-    assert response.status_code == 422
+    @pytest.mark.parametrize("input_data", [
+        ({
+            "username": "33_chars_basic_incorrect_username",
+            "password": "Passw0r!",
+            "email": "ccc@xyz.pl"
+        }),
+        ({
+            "username": "2c",
+            "password": "Passw0r!",
+            "email": "zzz@xyz.pl"
+        })
+    ])
+    async def test_incorrect_data_lengths(self, client, input_data):
+        response = client.post("/users/", json=input_data)
+        assert response.status_code == 422
 
     # Incorrect lengths
     incorrect_data = {
