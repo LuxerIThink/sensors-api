@@ -8,7 +8,11 @@ from api.main import app
 async def init_db() -> None:
     await Tortoise.init(
         db_url="sqlite://:memory:",
-        modules={'api': ['api.models', ]}
+        modules={
+            "api": [
+                "api.models",
+            ]
+        },
     )
     await Tortoise.generate_schemas()
 

@@ -4,12 +4,10 @@ from api.startup.security import password_checker
 
 
 class PasswordValidator(Validator):
-
     def __call__(self, value: str):
         failed_tests = password_checker.test(value)
 
         if failed_tests:
-
             failed_tests_string = str(failed_tests)
 
             failure_message_parts = ["doesn't have"]

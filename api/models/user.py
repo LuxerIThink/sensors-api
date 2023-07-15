@@ -7,10 +7,10 @@ from ..startup.security import password_hasher
 
 
 class User(AbstractBaseModel):
-    username = fields.CharField(max_length=32, unique=True,
-                                validators=[MinLengthValidator(3)])
-    password = fields.CharField(max_length=128,
-                                validators=[PasswordValidator()])
+    username = fields.CharField(
+        max_length=32, unique=True, validators=[MinLengthValidator(3)]
+    )
+    password = fields.CharField(max_length=128, validators=[PasswordValidator()])
     email = fields.CharField(max_length=32, unique=True)
     devices = fields.ReverseRelation["Device"]
 
@@ -24,8 +24,4 @@ UserInPydantic = pydantic_model_creator(
     name="UserIn",
     exclude_readonly=True,
 )
-UserOutPydantic = pydantic_model_creator(
-    User,
-    name="UserOut",
-    exclude=("password",)
-)
+UserOutPydantic = pydantic_model_creator(User, name="UserOut", exclude=("password",))

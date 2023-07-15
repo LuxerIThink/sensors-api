@@ -8,8 +8,6 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/", response_model=UserOutPydantic
-)
+@router.post("/", response_model=UserOutPydantic)
 async def create_user(user: UserInPydantic):
     return await User.create(**user.dict())
