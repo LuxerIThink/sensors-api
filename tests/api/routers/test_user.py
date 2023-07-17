@@ -167,3 +167,44 @@ class TestCreateUserAPI:
     async def test_incorrect_password(self, client, input_data):
         response = client.post("/users/", json=input_data)
         assert response.status_code == 422
+
+    @pytest.mark.parametrize(
+        "input_data",
+        [
+            # No @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "eee",
+                }
+            ),
+            # No text after @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "XYZ@",
+                }
+            ),
+            # No text before @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "@xyz.com",
+                }
+            ),
+            # No domain
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "xyz@xyz",
+                }
+            )
+        ],
+    )
+    async def test_incorrect_email(self, client, input_data):
+        response = client.post("/users/", json=input_data)
+        assert response.status_code == 422

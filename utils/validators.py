@@ -1,6 +1,9 @@
 from tortoise.validators import Validator
 from tortoise.exceptions import ValidationError
+
 from api.startup.security import password_checker
+
+from email_validator import validate_email, EmailNotValidError
 
 
 class PasswordValidator(Validator):
@@ -30,3 +33,11 @@ class PasswordValidator(Validator):
             failure_message = ", ".join(failure_message_parts)
 
             raise ValidationError(failure_message)
+
+
+class EmailValidator(Validator):
+    def __call__(self, value: str):
+        try:
+            validate_email(value, check_deliverability=True)
+        except EmailNotValidError as error:
+            raise ValidationError(error)

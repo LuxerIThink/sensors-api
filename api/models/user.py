@@ -1,5 +1,5 @@
 from tortoise import fields
-from utils.validators import PasswordValidator
+from utils.validators import PasswordValidator, EmailValidator
 from .abstract import AbstractBaseModel
 from tortoise.contrib.pydantic import pydantic_model_creator
 from tortoise.validators import MinLengthValidator
@@ -11,7 +11,7 @@ class User(AbstractBaseModel):
         max_length=32, unique=True, validators=[MinLengthValidator(3)]
     )
     password = fields.CharField(max_length=128, validators=[PasswordValidator()])
-    email = fields.CharField(max_length=32, unique=True)
+    email = fields.CharField(max_length=32, unique=True, validators=[EmailValidator()])
     devices = fields.ReverseRelation["Device"]
 
     async def save(self, *args, **kwargs):
