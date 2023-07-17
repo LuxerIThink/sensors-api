@@ -9,7 +9,7 @@ class TestCreateUserAPI:
         [
             (
                 {
-                    "username": "correct_username",
+                    "username": "username",
                     "password": "Pa$Sw0rd",
                     "email": "email@xyz.com",
                 }
@@ -25,9 +25,9 @@ class TestCreateUserAPI:
         [
             (
                 {
-                    "username": "other_username",
+                    "username": "username",
                     "password": "Pa$Sw0rd",
-                    "email": "other_email@xyz.com",
+                    "email": "email@xyz.com",
                 }
             )
         ],
@@ -45,15 +45,15 @@ class TestCreateUserAPI:
         [
             (
                 {
-                    "username": "this_username",
+                    "username": "username",
                     "password": "Pa$Sw0rd",
-                    "email": "otheremail@xyz.com",
+                    "email": "email@xyz.com",
                 }
             )
         ],
     )
     async def test_is_password_hashed(self, client, input_data):
-        response = client.post("/users/", json=input_data)
+        client.post("/users/", json=input_data)
         user = await User.filter(username=input_data["username"]).first()
         assert user.password != input_data["password"]
 
@@ -65,12 +65,12 @@ class TestCreateUserAPI:
                 {
                     "username": "username",
                     "password": "Pa$Sw0rd",
-                    "email": "xyz@xyz.com",
+                    "email": "email@xyz.com",
                 },
                 {
                     "username": "username",
                     "password": "P4S$word",
-                    "email": "xyz@mail.com",
+                    "email": "xyz@email.com",
                 },
             ),
             # By email
@@ -78,12 +78,12 @@ class TestCreateUserAPI:
                 {
                     "username": "username1",
                     "password": "P4$Sw0rd",
-                    "email": "xyz@xyz.com",
+                    "email": "email@xyz.com",
                 },
                 {
                     "username": "username2",
                     "password": "P4S$VVord",
-                    "email": "xyz@xyz.com",
+                    "email": "email@xyz.com",
                 },
             ),
         ],
@@ -100,12 +100,18 @@ class TestCreateUserAPI:
             (
                 {
                     "username": "33_chars_basic_incorrect_username",
-                    "password": "Passw0r!",
-                    "email": "ccc@xyz.pl",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com",
                 }
             ),
             # Too short username < 3 chars
-            ({"username": "2c", "password": "Passw0r!", "email": "zzz@xyz.pl"}),
+            (
+                {
+                    "username": "2c",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com"
+                }
+            ),
         ],
     )
     async def test_incorrect_data_lengths(self, client, input_data):
@@ -116,31 +122,37 @@ class TestCreateUserAPI:
         "input_data",
         [
             # Empty password
-            ({"username": "username1", "password": "", "email": "yyy@xyz.pl"}),
+            (
+                {
+                    "username": "username",
+                    "password": "",
+                    "email": "email@xyz.com"
+                }
+            ),
             # Too short password
             ({"username": "username2", "password": "7_Chars", "email": "xyz@xyz.com"}),
             # No numbers in password
             (
                 {
-                    "username": "username3",
+                    "username": "username",
                     "password": "No_Numbers",
-                    "email": "xyz@xyz.net",
+                    "email": "email@xyz.com"
                 }
             ),
             # No upper cases in password
             (
                 {
-                    "username": "username4",
+                    "username": "username",
                     "password": "0_upper_cases",
-                    "email": "xyz@zyx.pl",
+                    "email": "email@xyz.com"
                 }
             ),
             # No special chars in password
             (
                 {
-                    "username": "username5",
+                    "username": "username",
                     "password": "0Specials",
-                    "email": "xyz@mail.com",
+                    "email": "email@xyz.com"
                 }
             ),
         ],
