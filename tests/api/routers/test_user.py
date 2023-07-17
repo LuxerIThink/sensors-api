@@ -13,7 +13,14 @@ class TestCreateUserAPI:
                     "password": "Pa$Sw0rd",
                     "email": "email@xyz.com",
                 }
-            )
+            ),
+            (
+                {
+                    "username": "another_username",
+                    "password": "Different_Pa$Sw0rd",
+                    "email": "another_email@xyz.com",
+                }
+            ),
         ],
     )
     async def test_create_user(self, client, input_data):
