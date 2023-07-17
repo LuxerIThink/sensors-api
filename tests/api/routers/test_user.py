@@ -23,7 +23,7 @@ class TestCreateUserAPI:
             ),
         ],
     )
-    async def test_create_user(self, client, input_data):
+    async def test_correct_create_user(self, client, input_data):
         response = client.post("/users/", json=input_data)
         assert response.status_code == 200
 
@@ -39,7 +39,7 @@ class TestCreateUserAPI:
             )
         ],
     )
-    async def test_create_user(self, client, input_data):
+    async def test_create_user_response(self, client, input_data):
         response = client.post("/users/", json=input_data)
         output_data = response.json()
         assert output_data["uuid"]
@@ -91,6 +91,18 @@ class TestCreateUserAPI:
                     "username": "username2",
                     "password": "P4S$VVord",
                     "email": "email@xyz.com",
+                },
+            ),
+            (
+                {
+                    "username": "username3",
+                    "password": "P4$Sw0rd",
+                    "email": "email@xyz.com",
+                },
+                {
+                    "username": "username4",
+                    "password": "P4S$VVord",
+                    "email": "Email@xyz.com",
                 },
             ),
         ],
