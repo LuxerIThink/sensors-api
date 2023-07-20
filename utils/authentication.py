@@ -24,3 +24,12 @@ async def authenticate_user(username: str, password: str):
     except VerifyMismatchError:
         raise HTTPException(status_code=401, detail="Invalid password")
     return user
+
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_json = jwt.decode(token, salt, algorithms=["HS256"])
+    user = await User.get(email=decoded_json["email"])
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return user
+
