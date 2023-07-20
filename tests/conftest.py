@@ -23,7 +23,7 @@ def client():
     return client
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 async def initialize_tests():
     await init_db()
     yield
