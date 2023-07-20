@@ -3,7 +3,7 @@ from api.models.user import User
 
 
 @pytest.mark.anyio
-class TestCreateUserAPI:
+class TestUser:
     @pytest.mark.parametrize(
         "input_data",
         [
@@ -128,7 +128,7 @@ class TestCreateUserAPI:
                 {
                     "username": "2c",
                     "password": "P4S$VVord",
-                    "email": "email@xyz.com"
+                    "email": "email@xyz.com",
                 }
             ),
         ],
@@ -145,7 +145,7 @@ class TestCreateUserAPI:
                 {
                     "username": "username",
                     "password": "",
-                    "email": "email@xyz.com"
+                    "email": "email@xyz.com",
                 }
             ),
             # Too short password
@@ -155,7 +155,7 @@ class TestCreateUserAPI:
                 {
                     "username": "username",
                     "password": "No_Numbers",
-                    "email": "email@xyz.com"
+                    "email": "email@xyz.com",
                 }
             ),
             # No upper cases in password
@@ -163,7 +163,7 @@ class TestCreateUserAPI:
                 {
                     "username": "username",
                     "password": "0_upper_cases",
-                    "email": "email@xyz.com"
+                    "email": "email@xyz.com",
                 }
             ),
             # No special chars in password
@@ -171,7 +171,7 @@ class TestCreateUserAPI:
                 {
                     "username": "username",
                     "password": "0Specials",
-                    "email": "email@xyz.com"
+                    "email": "email@xyz.com",
                 }
             ),
         ],
@@ -214,7 +214,7 @@ class TestCreateUserAPI:
                     "password": "P4S$VVord",
                     "email": "xyz@xyz",
                 }
-            )
+            ),
         ],
     )
     async def test_incorrect_email(self, client, input_data):
