@@ -1,5 +1,6 @@
 import pytest
 from api.models.user import User
+from api.startup.security import password_hasher
 
 
 @pytest.mark.anyio
@@ -13,59 +14,31 @@ class TestUser:
                     "password": "Pa$Sw0rd",
                     "email": "email@xyz.com",
                 }
-            ),
-            (
-                {
-                    "username": "another_username",
-                    "password": "Different_Pa$Sw0rd",
-                    "email": "another_email@xyz.com",
-                }
-            ),
-        ],
-    )
-    async def test_correct_create_user(self, client, input_data):
-        response = client.post("/users/", json=input_data)
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize(
-        "input_data",
-        [
-            (
-                {
-                    "username": "username",
-                    "password": "Pa$Sw0rd",
-                    "email": "email@xyz.com",
-                }
             )
         ],
     )
-    async def test_create_user_response(self, client, input_data):
+    async def test_create_correct(self, client, input_data):
         response = client.post("/users/", json=input_data)
         output_data = response.json()
+        user = await User.filter(username=input_data["username"]).first()
+
+        # Check api response status coe
+        assert response.status_code == 200
+
+        # Check json input with api output
         assert output_data["uuid"]
         assert output_data["username"] == input_data["username"]
         assert "password" not in output_data
         assert output_data["email"] == input_data["email"]
 
-    @pytest.mark.parametrize(
-        "input_data",
-        [
-            (
-                {
-                    "username": "username",
-                    "password": "Pa$Sw0rd",
-                    "email": "email@xyz.com",
-                }
-            )
-        ],
-    )
-    async def test_is_password_hashed(self, client, input_data):
-        client.post("/users/", json=input_data)
-        user = await User.filter(username=input_data["username"]).first()
+        # Check json input with db data
+        assert user.username == input_data["username"]
+        assert user.email == input_data["email"]
         assert user.password != input_data["password"]
+        assert password_hasher.verify(user.password, input_data["password"]) is True
 
     @pytest.mark.parametrize(
-        "input_data1, input_data2",
+        "input1, input2, keywords",
         [
             # By username
             (
@@ -79,6 +52,7 @@ class TestUser:
                     "password": "P4S$word",
                     "email": "xyz@email.com",
                 },
+                ["username"],
             ),
             # By email
             (
@@ -92,7 +66,9 @@ class TestUser:
                     "password": "P4S$VVord",
                     "email": "email@xyz.com",
                 },
+                ["email"],
             ),
+            # By email check chars sizes
             (
                 {
                     "username": "username3",
@@ -104,24 +80,28 @@ class TestUser:
                     "password": "P4S$VVord",
                     "email": "Email@xyz.com",
                 },
+                ["email"],
             ),
         ],
     )
-    async def test_create_existing_user(self, client, input_data1, input_data2):
-        client.post("/users/", json=input_data1)
-        response = client.post("/users/", json=input_data2)
+    async def test_create_existing_user(self, client, input1, input2, keywords):
+        client.post("/users/", json=input1)
+        response = client.post("/users/", json=input2)
         assert response.status_code == 422
+        assert [keyword in response.json()["detail"][0]["msg"] for keyword in keywords]
 
     @pytest.mark.parametrize(
-        "input_data",
+        "input_data, keywords",
         [
+            # Lengths
             # too long username > 32 chars
             (
                 {
                     "username": "33_chars_basic_incorrect_username",
                     "password": "P4S$VVord",
                     "email": "email@xyz.com",
-                }
+                },
+                ["32"],
             ),
             # Too short username < 3 chars
             (
@@ -129,34 +109,36 @@ class TestUser:
                     "username": "2c",
                     "password": "P4S$VVord",
                     "email": "email@xyz.com",
-                }
+                },
+                ["3"],
             ),
-        ],
-    )
-    async def test_incorrect_data_lengths(self, client, input_data):
-        response = client.post("/users/", json=input_data)
-        assert response.status_code == 422
-
-    @pytest.mark.parametrize(
-        "input_data",
-        [
+            # Password
             # Empty password
             (
                 {
                     "username": "username",
                     "password": "",
                     "email": "email@xyz.com",
-                }
+                },
+                ["password"],
             ),
             # Too short password
-            ({"username": "username2", "password": "7_Chars", "email": "xyz@xyz.com"}),
-            # No numbers in password
+            (
+                {
+                    "username": "username2",
+                    "password": "7_Chars",
+                    "email": "email@xyz.com",
+                },
+                ["password", "8"],
+            ),
+            # No digits in password
             (
                 {
                     "username": "username",
                     "password": "No_Numbers",
                     "email": "email@xyz.com",
-                }
+                },
+                ["password", "digit"],
             ),
             # No upper cases in password
             (
@@ -164,7 +146,8 @@ class TestUser:
                     "username": "username",
                     "password": "0_upper_cases",
                     "email": "email@xyz.com",
-                }
+                },
+                ["password", "uppercase"],
             ),
             # No special chars in password
             (
@@ -172,24 +155,18 @@ class TestUser:
                     "username": "username",
                     "password": "0Specials",
                     "email": "email@xyz.com",
-                }
+                },
+                ["password", "special"],
             ),
-        ],
-    )
-    async def test_incorrect_password(self, client, input_data):
-        response = client.post("/users/", json=input_data)
-        assert response.status_code == 422
-
-    @pytest.mark.parametrize(
-        "input_data",
-        [
+            # Email
             # No @ in email
             (
                 {
                     "username": "username",
                     "password": "P4S$VVord",
                     "email": "eee",
-                }
+                },
+                ["email", "@"],
             ),
             # No text after @ in email
             (
@@ -197,7 +174,8 @@ class TestUser:
                     "username": "username",
                     "password": "P4S$VVord",
                     "email": "XYZ@",
-                }
+                },
+                ["email", "@", "after"],
             ),
             # No text before @ in email
             (
@@ -205,18 +183,22 @@ class TestUser:
                     "username": "username",
                     "password": "P4S$VVord",
                     "email": "@xyz.com",
-                }
+                },
+                ["email", "@", "before"],
             ),
-            # No domain
+            # No domain in email
             (
                 {
                     "username": "username",
                     "password": "P4S$VVord",
                     "email": "xyz@xyz",
-                }
+                },
+                ["email", "@", "after"],
             ),
         ],
     )
-    async def test_incorrect_email(self, client, input_data):
+    async def test_create_incorrect(self, client, input_data, keywords):
         response = client.post("/users/", json=input_data)
         assert response.status_code == 422
+        output = response.json()["detail"][0]["msg"].lower()
+        assert all(keyword in output for keyword in keywords)
