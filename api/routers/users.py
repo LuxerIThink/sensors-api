@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from utils.authentication import get_current_user
+from api.internal.authentication import get_current_user
 from ..models.user import UserOutPydantic, UserInPydantic, User
 
 

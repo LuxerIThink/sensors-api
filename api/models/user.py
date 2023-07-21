@@ -1,5 +1,5 @@
 from tortoise import fields
-from utils.validators import PasswordValidator, EmailValidator
+from api.internal.validators import PasswordValidator, EmailValidator
 from .abstract import AbstractBaseModel
 from tortoise.contrib.pydantic import pydantic_model_creator
 from tortoise.validators import MinLengthValidator

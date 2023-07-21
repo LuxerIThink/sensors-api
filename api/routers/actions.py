@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-from utils.authentication import get_token
+from api.internal.authentication import get_token
 
 router = APIRouter(
     prefix="/actions",

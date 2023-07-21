@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from utils.exceptions_handlers import validation_exception_handler
+from api.internal.exceptions_handlers import validation_exception_handler
 from .routers import actions, users
 from .startup.orm import connect_to_db
 from tortoise.exceptions import ValidationError
