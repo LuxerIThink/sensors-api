@@ -1,5 +1,4 @@
 from typing import Annotated
-from argon2.exceptions import VerifyMismatchError
 from jose import jwt
 
 from api.models import User
@@ -19,10 +18,7 @@ async def authenticate_user(username: str, password: str):
     user = await User.get(username=username)
     if not user:
         raise HTTPException(status_code=401, detail="User not exist")
-    try:
-        password_hasher.verify(user.password, password)
-    except VerifyMismatchError:
-        raise HTTPException(status_code=401, detail="Invalid password")
+    password_hasher.verify(user.password, password)
     return user
 
 

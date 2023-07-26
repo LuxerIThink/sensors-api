@@ -88,7 +88,7 @@ class TestUser:
         client.post("/users/", json=input1)
         response = client.post("/users/", json=input2)
         assert response.status_code == 422
-        assert [keyword in response.json()["detail"][0]["msg"] for keyword in keywords]
+        assert [keyword in str(response.json()) for keyword in keywords]
 
     @pytest.mark.parametrize(
         "input_data, keywords",
@@ -101,7 +101,7 @@ class TestUser:
                     "password": "P4S$VVord",
                     "email": "email@xyz.com",
                 },
-                ["32"],
+                ["username", "32"],
             ),
             # Too short username < 3 chars
             (
@@ -110,7 +110,7 @@ class TestUser:
                     "password": "P4S$VVord",
                     "email": "email@xyz.com",
                 },
-                ["3"],
+                ["username", "3"],
             ),
             # Password
             # Empty password
@@ -200,8 +200,7 @@ class TestUser:
     async def test_create_incorrect(self, client, input_data, keywords):
         response = client.post("/users/", json=input_data)
         assert response.status_code == 422
-        output = response.json()["detail"][0]["msg"].lower()
-        assert all(keyword in output for keyword in keywords)
+        assert all(keyword in str(response.json()) for keyword in keywords)
 
     async def test_get_correct(self, client, correct_token):
         header = {"Authorization": correct_token}

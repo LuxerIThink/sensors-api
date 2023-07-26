@@ -39,5 +39,5 @@ class EmailValidator(Validator):
     def __call__(self, value: str):
         try:
             validate_email(value, check_deliverability=True)
-        except EmailNotValidError as error:
-            raise ValidationError(error)
+        except EmailNotValidError as exc:
+            raise ValidationError(f"email: {str(exc)}")
