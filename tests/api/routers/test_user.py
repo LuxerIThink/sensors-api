@@ -202,3 +202,27 @@ class TestUser:
         assert response.status_code == 422
         output = response.json()["detail"][0]["msg"].lower()
         assert all(keyword in output for keyword in keywords)
+
+    async def test_get_correct(self, client, correct_token):
+        header = {"Authorization": correct_token}
+        response = client.get("/users/", headers=header)
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize(
+        "token, keywords",
+        [
+            (
+                "Bearer eyJhbGciOiAiSFMyNTYiLCAid"
+                "HlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjog"
+                "MTIzNDU2LCAiZXhwIjogMTY3OTcxMzYw"
+                "MH0.PZJlhhRLP-I4KJKu3uWls6D2_sWm"
+                "3WfVD9H09VzgXe0",
+                ["verification", "failed"],
+            ),
+        ],
+    )
+    async def test_get_incorrect(self, client, token, keywords):
+        header = {"Authorization": token}
+        response = client.get("/users/", headers=header)
+        assert response.status_code == 422
+        assert all(keyword in str(response.json()) for keyword in keywords)

@@ -33,3 +33,21 @@ async def initialize_tests():
 @pytest.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
+
+
+@pytest.fixture(scope="function")
+async def correct_token(client):
+    register_data = {
+        "username": "username",
+        "password": "Pa$Sw0rd",
+        "email": "email@xyz.com",
+    }
+    client.post("/users/", json=register_data)
+    login_data = {key: value for key, value in register_data.items() if key != "email"}
+    header = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    response = client.post("/actions/token/", data=login_data, headers=header)
+    output_data = response.json()
+
+    token = f"{output_data['token_type']} {output_data['access_token']}"
+    return token
