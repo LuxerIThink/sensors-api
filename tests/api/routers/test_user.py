@@ -5,37 +5,26 @@ from api.startup.security import password_hasher
 
 @pytest.mark.anyio
 class TestUser:
-    @pytest.mark.parametrize(
-        "input_data",
-        [
-            (
-                {
-                    "username": "username",
-                    "password": "Pa$Sw0rd",
-                    "email": "email@xyz.com",
-                }
-            )
-        ],
-    )
-    async def test_create_correct(self, client, input_data):
-        response = client.post("/users/", json=input_data)
+
+    async def test_create_correct(self, client, correct_user_data):
+        response = client.post("/users/", json=correct_user_data)
         output_data = response.json()
-        user = await User.filter(username=input_data["username"]).first()
+        user = await User.filter(username=correct_user_data["username"]).first()
 
         # Check api response status coe
         assert response.status_code == 200
 
         # Check json input with api output
         assert output_data["uuid"]
-        assert output_data["username"] == input_data["username"]
+        assert output_data["username"] == correct_user_data["username"]
         assert "password" not in output_data
-        assert output_data["email"] == input_data["email"]
+        assert output_data["email"] == correct_user_data["email"]
 
         # Check json input with db data
-        assert user.username == input_data["username"]
-        assert user.email == input_data["email"]
-        assert user.password != input_data["password"]
-        assert password_hasher.verify(user.password, input_data["password"]) is True
+        assert user.username == correct_user_data["username"]
+        assert user.email == correct_user_data["email"]
+        assert user.password != correct_user_data["password"]
+        assert password_hasher.verify(user.password, correct_user_data["password"]) is True
 
     @pytest.mark.parametrize(
         "input1, input2, keywords",
