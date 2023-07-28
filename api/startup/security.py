@@ -1,4 +1,4 @@
-from os import getenv
+
 from argon2 import PasswordHasher
 from fastapi.security import OAuth2PasswordBearer
 from password_strength import PasswordPolicy
@@ -15,4 +15,3 @@ password_checker = PasswordPolicy.from_names(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="actions/token")
 
-salt = str(getenv("JWT_SECRET"))
