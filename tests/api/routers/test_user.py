@@ -1,15 +1,15 @@
 import pytest
+from argon2 import PasswordHasher
 from api.models.user import User
-from api.startup.security import password_hasher
 
 
 @pytest.mark.anyio
 class TestUser:
-
     async def test_create_correct(self, client, correct_user_data):
         response = client.post("/users/", json=correct_user_data)
         output_data = response.json()
         user = await User.filter(username=correct_user_data["username"]).first()
+        password_hasher = PasswordHasher()
 
         # Check api response status coe
         assert response.status_code == 200
@@ -24,7 +24,9 @@ class TestUser:
         assert user.username == correct_user_data["username"]
         assert user.email == correct_user_data["email"]
         assert user.password != correct_user_data["password"]
-        assert password_hasher.verify(user.password, correct_user_data["password"]) is True
+        assert (
+            password_hasher.verify(user.password, correct_user_data["password"]) is True
+        )
 
     @pytest.mark.parametrize(
         "input1, input2, keywords",

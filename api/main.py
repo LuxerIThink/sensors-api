@@ -1,10 +1,8 @@
 from fastapi import FastAPI
-
 from api.internal.exceptions_handlers import validation_exception_handler
 from .routers import actions, users
 from .startup.orm import connect_to_db
 from tortoise.exceptions import ValidationError
-from email_validator import EmailNotValidError
 from jose import JWTError
 from argon2.exceptions import VerifyMismatchError
 

@@ -1,7 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
-
 from api.main import app
 
 
@@ -48,7 +47,9 @@ def correct_user_data(client):
 @pytest.fixture(scope="function")
 async def correct_token(client, correct_user_data):
     client.post("/users/", json=correct_user_data)
-    login_data = {key: value for key, value in correct_user_data.items() if key != "email"}
+    login_data = {
+        key: value for key, value in correct_user_data.items() if key != "email"
+    }
     header = {"Content-Type": "application/x-www-form-urlencoded"}
 
     response = client.post("/actions/token/", data=login_data, headers=header)

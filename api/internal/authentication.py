@@ -1,10 +1,7 @@
 from typing import Annotated
 from jose import jwt
-
 from os import getenv
-
 from api.models import User
-from api.startup.security import password_hasher, oauth2_scheme
 from fastapi import Depends
 
 
