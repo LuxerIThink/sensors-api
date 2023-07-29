@@ -1,34 +1,36 @@
 from tortoise.validators import Validator
 from tortoise.exceptions import ValidationError
-
-from api.startup.security import password_checker
-
+from password_strength import PasswordPolicy
 from email_validator import validate_email, EmailNotValidError
 
 
 class PasswordValidator(Validator):
+    def __init__(self):
+        self.password_policy = PasswordPolicy.from_names(
+            length=8,
+            uppercase=1,
+            numbers=1,
+            special=1,
+            nonletters=1,
+        )
+
     def __call__(self, value: str):
-        failed_tests = password_checker.test(value)
+        failed_tests = self.password_policy.test(value)
 
         if failed_tests:
-            failed_tests_string = str(failed_tests)
+            failure_types = {
+                "Length": "8 characters",
+                "Special": "special character",
+                "Uppercase": "uppercase letter",
+                "Numbers": "digit",
+                "NonLetters": "non-letter character",
+            }
 
             failure_message_parts = ["doesn't have"]
 
-            if "Length" in failed_tests_string:
-                failure_message_parts.append("8 characters")
-
-            if "Special" in failed_tests_string:
-                failure_message_parts.append("special character")
-
-            if "Uppercase" in failed_tests_string:
-                failure_message_parts.append("uppercase letter")
-
-            if "Numbers" in failed_tests_string:
-                failure_message_parts.append("digit")
-
-            if "NonLetters" in failed_tests_string:
-                failure_message_parts.append("non-letter character")
+            for test in failed_tests:
+                failure_type = str(test).split("(")[0]
+                failure_message_parts.append(failure_types[failure_type])
 
             failure_message = ", ".join(failure_message_parts)
 
