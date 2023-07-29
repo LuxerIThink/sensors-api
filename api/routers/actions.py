@@ -1,7 +1,9 @@
+from argon2 import PasswordHasher
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-from api.internal.authentication import get_token
+from api.internal.authentication import Token
+from api.models import User
 
 router = APIRouter(
     prefix="/actions",
@@ -11,4 +13,10 @@ router = APIRouter(
 
 @router.post("/token")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    return await get_token(form_data.username, form_data.password)
+    user = await User.get(username=form_data.username)
+    password_hasher = PasswordHasher()
+    password_hasher.verify(user.password, form_data.password)
+    data = {"email": user.email}
+    token = Token.encode_token(data)
+    token_json = {"access_token": token, "token_type": "bearer"}
+    return token_json

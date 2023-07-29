@@ -1,9 +1,9 @@
+from argon2 import PasswordHasher
 from tortoise import fields
 from api.internal.validators import PasswordValidator, EmailValidator
 from .abstract import AbstractBaseModel
 from tortoise.contrib.pydantic import pydantic_model_creator
 from tortoise.validators import MinLengthValidator
-from ..startup.security import password_hasher
 
 
 class User(AbstractBaseModel):
@@ -15,6 +15,7 @@ class User(AbstractBaseModel):
     devices = fields.ReverseRelation["Device"]
 
     async def save(self, *args, **kwargs):
+        password_hasher = PasswordHasher()
         self.password = password_hasher.hash(self.password)
         self.email = self.email.lower()
         await super().save(*args, **kwargs)
