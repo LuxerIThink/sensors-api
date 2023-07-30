@@ -19,9 +19,8 @@ class Token:
         return jwt.decode(token, cls.salt, algorithms=[cls.__algorithm])
 
 
-async def get_current_user(
+async def authorize(
     token: Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="actions/token"))]
 ):
-    decoded_json = Token.decode_token(token)
-    user = await User.get(email=decoded_json["email"])
-    return user
+    token_data = Token.decode_token(token)
+    return token_data
