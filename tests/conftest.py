@@ -1,7 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
+from api.internal.authentication import Token
 from api.main import app
+from api.models import User
 
 
 async def init_db() -> None:
@@ -36,24 +38,21 @@ def anyio_backend():
 
 @pytest.fixture(scope="function")
 def correct_user_data(client):
-    correct_user_data = {
+    return {
         "username": "username",
         "password": "Pa$Sw0rd",
         "email": "email@xyz.com",
     }
-    return correct_user_data
 
 
 @pytest.fixture(scope="function")
-async def correct_token(client, correct_user_data):
-    client.post("/users/", json=correct_user_data)
-    login_data = {
-        key: value for key, value in correct_user_data.items() if key != "email"
-    }
-    header = {"Content-Type": "application/x-www-form-urlencoded"}
+async def correct_user(client, correct_user_data):
+    return await User.create(**correct_user_data)
 
-    response = client.post("/actions/token/", data=login_data, headers=header)
-    output_data = response.json()
 
-    token = f"{output_data['token_type']} {output_data['access_token']}"
-    return token
+@pytest.fixture(scope="function")
+async def correct_token(client, correct_user, correct_user_data):
+    email = correct_user_data["email"]
+    token_data = {"email": email}
+    token = Token.encode_token(token_data)
+    return f"bearer {token}"

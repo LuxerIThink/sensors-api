@@ -18,5 +18,5 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     password_hasher.verify(user.password, form_data.password)
     data = {"email": user.email}
     token = Token.encode_token(data)
-    token_json = {"access_token": token, "token_type": "bearer"}
+    token_json = {"token_type": "bearer", "access_token": token}
     return token_json
