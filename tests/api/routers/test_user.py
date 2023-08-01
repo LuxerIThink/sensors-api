@@ -216,3 +216,35 @@ class TestUser:
         response = client.get("/users/", headers=header)
         assert response.status_code == 422
         assert all(keyword in str(response.json()) for keyword in keywords)
+
+    @pytest.mark.parametrize(
+        "edited_user",
+        [
+            {
+                "username": "other_name",
+                "password": "N0th1ng!",
+                "email": "other_mail@mail.xyz",
+            },
+        ]
+    )
+    async def test_edit_correct(self, client, correct_token, correct_user_data, edited_user):
+        header = {"Authorization": correct_token}
+        old_user = await User.get(email=correct_user_data["email"])
+        response = client.put("/users/", headers=header, json=edited_user)
+        assert response.status_code == 200
+        new_user = await User.get(email=edited_user["email"])
+        assert response.status_code == 200
+        new_user_json = response.json()
+        assert old_user.uuid == new_user.uuid
+        assert new_user_json["username"] == edited_user["username"]
+        assert old_user.password != new_user.password
+        assert new_user_json["email"] == edited_user["email"]
+
+    async def test_remove_correct(self, client, correct_token):
+        header = {"Authorization": correct_token}
+        response_get_before = client.get("/users/", headers=header)
+        assert response_get_before.status_code == 200
+        response_delete = client.delete("/users/", headers=header)
+        assert response_delete.status_code == 200
+        response_get_after = client.get("/users/", headers=header)
+        assert response_get_after.status_code == 404
