@@ -1,8 +1,7 @@
 from typing import Annotated
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer as OAuth2
 from jose import jwt
 from os import getenv
-from api.models import User
 from fastapi import Depends
 
 
@@ -19,8 +18,6 @@ class Token:
         return jwt.decode(token, cls.salt, algorithms=[cls.__algorithm])
 
 
-async def authorize(
-    token: Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="actions/token"))]
-):
+async def authorize(token: Annotated[str, Depends(OAuth2(tokenUrl="actions/token"))]):
     token_data = Token.decode_token(token)
-    return token_data["email"]
+    return token_data["uuid"]

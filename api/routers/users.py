@@ -12,8 +12,8 @@ router = APIRouter(
 
 
 @router.get("/", response_model=UserOutPydantic)
-async def get_user(token_data: Annotated[dict, Depends(authorize)]):
-    user = await User.get(email=token_data)
+async def get_user(uuid: Annotated[dict, Depends(authorize)]):
+    user = await User.get(uuid=uuid)
     return user
 
 
@@ -23,13 +23,13 @@ async def create_user(user: UserInPydantic):
 
 
 @router.put("/", response_model=UserOutPydantic)
-async def edit_user(user: UserInPydantic, token: Annotated[dict, Depends(authorize)]):
+async def edit_user(user: UserInPydantic, uuid: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
-        await User.filter(email=token).update(**user.dict())
-        user_new = await User.get(email=user.dict()["email"])
+        await User.filter(uuid=uuid).update(**user.dict())
+        user_new = await User.get(uuid=uuid)
     return user_new
 
 
 @router.delete("/")
-async def remove_user(token_data: Annotated[dict, Depends(authorize)]):
-    return await User.filter(email=token_data).delete()
+async def remove_user(uuid: Annotated[dict, Depends(authorize)]):
+    return await User.filter(uuid=uuid).delete()

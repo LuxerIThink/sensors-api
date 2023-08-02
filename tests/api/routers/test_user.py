@@ -5,10 +5,10 @@ from api.models.user import User
 
 @pytest.mark.anyio
 class TestUser:
-    async def test_create_correct(self, client, correct_user_data):
-        response = client.post("/users/", json=correct_user_data)
+    async def test_create_correct(self, client, user_data):
+        response = client.post("/users/", json=user_data)
         output_data = response.json()
-        user = await User.filter(username=correct_user_data["username"]).first()
+        user = await User.filter(username=user_data["username"]).first()
         password_hasher = PasswordHasher()
 
         # Check api response status coe
@@ -16,17 +16,15 @@ class TestUser:
 
         # Check json input with api output
         assert output_data["uuid"]
-        assert output_data["username"] == correct_user_data["username"]
+        assert output_data["username"] == user_data["username"]
         assert "password" not in output_data
-        assert output_data["email"] == correct_user_data["email"]
+        assert output_data["email"] == user_data["email"]
 
         # Check json input with db data
-        assert user.username == correct_user_data["username"]
-        assert user.email == correct_user_data["email"]
-        assert user.password != correct_user_data["password"]
-        assert (
-            password_hasher.verify(user.password, correct_user_data["password"]) is True
-        )
+        assert user.username == user_data["username"]
+        assert user.email == user_data["email"]
+        assert user.password != user_data["password"]
+        assert password_hasher.verify(user.password, user_data["password"]) is True
 
     @pytest.mark.parametrize(
         "input1, input2, keywords",
@@ -225,11 +223,11 @@ class TestUser:
                 "password": "N0th1ng!",
                 "email": "other_mail@mail.xyz",
             },
-        ]
+        ],
     )
-    async def test_edit_correct(self, client, correct_token, correct_user_data, edited_user):
+    async def test_edit_correct(self, client, correct_token, user_data, edited_user):
         header = {"Authorization": correct_token}
-        old_user = await User.get(email=correct_user_data["email"])
+        old_user = await User.get(email=user_data["email"])
         response = client.put("/users/", headers=header, json=edited_user)
         assert response.status_code == 200
         new_user = await User.get(email=edited_user["email"])
