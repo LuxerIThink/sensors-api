@@ -23,4 +23,4 @@ async def authorize(
     token: Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="actions/token"))]
 ):
     token_data = Token.decode_token(token)
-    return token_data
+    return token_data["email"]
