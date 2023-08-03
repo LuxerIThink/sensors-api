@@ -237,28 +237,135 @@ class TestUser:
         assert all(keyword in str(response.json()) for keyword in keywords)
 
     @pytest.mark.parametrize(
-        "edited_user",
+        "edited_user, status",
         [
-            {
-                "username": "other_name",
-                "password": "N0th1ng!",
-                "email": "other_mail@mail.xyz",
-            },
+            (
+                {
+                    "username": "other_name",
+                    "password": "N0th1ng!",
+                    "email": "other_mail@mail.xyz",
+                },
+                200,
+            ),
+            # Incorrects
+            # Lengths
+            # too long username > 32 chars
+            (
+                {
+                    "username": "33_chars_basic_incorrect_username",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # Too short username < 3 chars
+            (
+                {
+                    "username": "2c",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # Password
+            # Empty password
+            (
+                {
+                    "username": "username",
+                    "password": "",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # Too short password
+            (
+                {
+                    "username": "username2",
+                    "password": "7_Chars",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # No digits in password
+            (
+                {
+                    "username": "username",
+                    "password": "No_Numbers",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # No upper cases in password
+            (
+                {
+                    "username": "username",
+                    "password": "0_upper_cases",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # No special chars in password
+            (
+                {
+                    "username": "username",
+                    "password": "0Specials",
+                    "email": "email@xyz.com",
+                },
+                422,
+            ),
+            # Email
+            # No @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "eee",
+                },
+                422,
+            ),
+            # No text after @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "XYZ@",
+                },
+                422,
+            ),
+            # No text before @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "@xyz.com",
+                },
+                422,
+            ),
+            # No domain in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "xyz@xyz",
+                },
+                422,
+            ),
         ],
     )
-    async def test_edit_correct(self, client, create_header, user_data, edited_user):
+    async def test_edit(self, client, create_header, user_data, edited_user, status):
         old_user = await User.get(email=user_data["email"])
         response = client.put("/users/", headers=create_header, json=edited_user)
-        assert response.status_code == 200
-        new_user = await User.get(email=edited_user["email"])
-        assert response.status_code == 200
-        new_user_json = response.json()
-        assert old_user.uuid == new_user.uuid
-        assert new_user_json["username"] == edited_user["username"]
-        assert old_user.password != new_user.password
-        assert new_user_json["email"] == edited_user["email"]
+        assert response.status_code == status
+        match status:
+            case 200:
+                new_user = await User.get(email=edited_user["email"])
+                new_user_json = response.json()
+                assert old_user.uuid == new_user.uuid
+                assert new_user_json["username"] == edited_user["username"]
+                assert old_user.password != new_user.password
+                assert new_user_json["email"] == edited_user["email"]
 
-    async def test_remove_correct(self, client, create_header):
+    async def test_remove(self, client, create_header):
         response_get_before = client.get("/users/", headers=create_header)
         assert response_get_before.status_code == 200
         response_delete = client.delete("/users/", headers=create_header)
