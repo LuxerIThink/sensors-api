@@ -50,10 +50,12 @@ def create_user(client, user_data):
 
 
 @pytest.fixture(scope="function")
-def correct_token(client, create_user, user_data):
+def create_header(client, create_user, user_data):
     login_data = user_data.copy()
     login_data.pop("email")
     header = {"Content-Type": "application/x-www-form-urlencoded"}
     response = client.post("/actions/token/", data=login_data, headers=header)
     data = response.json()
-    return f"{data['token_type']} {data['access_token']}"
+    token = f"{data['token_type']} {data['access_token']}"
+    header = {"Authorization": token}
+    return header

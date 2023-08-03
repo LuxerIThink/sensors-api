@@ -11,7 +11,7 @@ class TestUser:
         user = await User.filter(username=user_data["username"]).first()
         password_hasher = PasswordHasher()
 
-        # Check api response status coe
+        # Check api response status
         assert response.status_code == 200
 
         # Check json input with api output
@@ -27,7 +27,7 @@ class TestUser:
         assert password_hasher.verify(user.password, user_data["password"]) is True
 
     @pytest.mark.parametrize(
-        "input1, input2, keywords",
+        "data1, data2, keywords",
         [
             # By username
             (
@@ -73,9 +73,9 @@ class TestUser:
             ),
         ],
     )
-    async def test_create_existing_user(self, client, input1, input2, keywords):
-        client.post("/users/", json=input1)
-        response = client.post("/users/", json=input2)
+    async def test_create_existing_user(self, client, data1, data2, keywords):
+        client.post("/users/", json=data1)
+        response = client.post("/users/", json=data2)
         assert response.status_code == 422
         assert [keyword in str(response.json()) for keyword in keywords]
 
@@ -191,26 +191,26 @@ class TestUser:
         assert response.status_code == 422
         assert all(keyword in str(response.json()) for keyword in keywords)
 
-    async def test_get_correct(self, client, correct_token):
-        header = {"Authorization": correct_token}
-        response = client.get("/users/", headers=header)
+    async def test_get_correct(self, client, create_header):
+        response = client.get("/users/", headers=create_header)
         assert response.status_code == 200
 
     @pytest.mark.parametrize(
-        "token, keywords",
+        "header, keywords",
         [
             (
-                "Bearer eyJhbGciOiAiSFMyNTYiLCAid"
-                "HlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjog"
-                "MTIzNDU2LCAiZXhwIjogMTY3OTcxMzYw"
-                "MH0.PZJlhhRLP-I4KJKu3uWls6D2_sWm"
-                "3WfVD9H09VzgXe0",
+                {
+                    "Authorization": "Bearer eyJhbGciOiAiSFMyNTYiLCAid"
+                    "HlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjog"
+                    "MTIzNDU2LCAiZXhwIjogMTY3OTcxMzYw"
+                    "MH0.PZJlhhRLP-I4KJKu3uWls6D2_sWm"
+                    "3WfVD9H09VzgXe0"
+                },
                 ["verification", "failed"],
             ),
         ],
     )
-    async def test_get_incorrect(self, client, token, keywords):
-        header = {"Authorization": token}
+    async def test_get_incorrect(self, client, header, keywords):
         response = client.get("/users/", headers=header)
         assert response.status_code == 422
         assert all(keyword in str(response.json()) for keyword in keywords)
@@ -225,10 +225,9 @@ class TestUser:
             },
         ],
     )
-    async def test_edit_correct(self, client, correct_token, user_data, edited_user):
-        header = {"Authorization": correct_token}
+    async def test_edit_correct(self, client, create_header, user_data, edited_user):
         old_user = await User.get(email=user_data["email"])
-        response = client.put("/users/", headers=header, json=edited_user)
+        response = client.put("/users/", headers=create_header, json=edited_user)
         assert response.status_code == 200
         new_user = await User.get(email=edited_user["email"])
         assert response.status_code == 200
@@ -238,11 +237,10 @@ class TestUser:
         assert old_user.password != new_user.password
         assert new_user_json["email"] == edited_user["email"]
 
-    async def test_remove_correct(self, client, correct_token):
-        header = {"Authorization": correct_token}
-        response_get_before = client.get("/users/", headers=header)
+    async def test_remove_correct(self, client, create_header):
+        response_get_before = client.get("/users/", headers=create_header)
         assert response_get_before.status_code == 200
-        response_delete = client.delete("/users/", headers=header)
+        response_delete = client.delete("/users/", headers=create_header)
         assert response_delete.status_code == 200
-        response_get_after = client.get("/users/", headers=header)
+        response_get_after = client.get("/users/", headers=create_header)
         assert response_get_after.status_code == 404
