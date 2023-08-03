@@ -5,26 +5,159 @@ from api.models.user import User
 
 @pytest.mark.anyio
 class TestUser:
-    async def test_create_correct(self, client, user_data):
-        response = client.post("/users/", json=user_data)
-        output_data = response.json()
-        user = await User.filter(username=user_data["username"]).first()
-        password_hasher = PasswordHasher()
 
-        # Check api response status
-        assert response.status_code == 200
+    @pytest.mark.parametrize(
+        "data, status, keywords",
+        [
+            # Correct
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com",
+                },
+                200,
+                [],
+            ),
+            # Incorrects
+            # Lengths
+            # too long username > 32 chars
+            (
+                {
+                    "username": "33_chars_basic_incorrect_username",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["username", "32"],
+            ),
+            # Too short username < 3 chars
+            (
+                {
+                    "username": "2c",
+                    "password": "P4S$VVord",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["username", "3"],
+            ),
+            # Password
+            # Empty password
+            (
+                {
+                    "username": "username",
+                    "password": "",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["password"],
+            ),
+            # Too short password
+            (
+                {
+                    "username": "username2",
+                    "password": "7_Chars",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["password", "8"],
+            ),
+            # No digits in password
+            (
+                {
+                    "username": "username",
+                    "password": "No_Numbers",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["password", "digit"],
+            ),
+            # No upper cases in password
+            (
+                {
+                    "username": "username",
+                    "password": "0_upper_cases",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["password", "uppercase"],
+            ),
+            # No special chars in password
+            (
+                {
+                    "username": "username",
+                    "password": "0Specials",
+                    "email": "email@xyz.com",
+                },
+                422,
+                ["password", "special"],
+            ),
+            # Email
+            # No @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "eee",
+                },
+                422,
+                ["email", "@"],
+            ),
+            # No text after @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "XYZ@",
+                },
+                422,
+                ["email", "@", "after"],
+            ),
+            # No text before @ in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "@xyz.com",
+                },
+                422,
+                ["email", "@", "before"],
+            ),
+            # No domain in email
+            (
+                {
+                    "username": "username",
+                    "password": "P4S$VVord",
+                    "email": "xyz@xyz",
+                },
+                422,
+                ["email", "@", "after"],
+            ),
+        ],
+    )
+    async def test_create(self, client, data, status, keywords):
+        response = client.post("/users/", json=data)
+        assert response.status_code == status
+        match status:
+            case 422:
+                assert all(keyword in str(response.json()) for keyword in keywords)
+            case 200:
+                password_hasher = PasswordHasher()
 
-        # Check json input with api output
-        assert output_data["uuid"]
-        assert output_data["username"] == user_data["username"]
-        assert "password" not in output_data
-        assert output_data["email"] == user_data["email"]
+                user = await User.filter(username=data["username"]).first()
+                output_data = response.json()
 
-        # Check json input with db data
-        assert user.username == user_data["username"]
-        assert user.email == user_data["email"]
-        assert user.password != user_data["password"]
-        assert password_hasher.verify(user.password, user_data["password"]) is True
+                # Check json input with api output
+                assert output_data["uuid"]
+                assert output_data["username"] == data["username"]
+                assert "password" not in output_data
+                assert output_data["email"] == data["email"]
+
+                # Check json input with db data
+                assert user.username == data["username"]
+                assert user.email == data["email"]
+                assert user.password != data["password"]
+                assert password_hasher.verify(user.password, data["password"]) is True
 
     @pytest.mark.parametrize(
         "data1, data2, keywords",
@@ -78,118 +211,6 @@ class TestUser:
         response = client.post("/users/", json=data2)
         assert response.status_code == 422
         assert [keyword in str(response.json()) for keyword in keywords]
-
-    @pytest.mark.parametrize(
-        "input_data, keywords",
-        [
-            # Lengths
-            # too long username > 32 chars
-            (
-                {
-                    "username": "33_chars_basic_incorrect_username",
-                    "password": "P4S$VVord",
-                    "email": "email@xyz.com",
-                },
-                ["username", "32"],
-            ),
-            # Too short username < 3 chars
-            (
-                {
-                    "username": "2c",
-                    "password": "P4S$VVord",
-                    "email": "email@xyz.com",
-                },
-                ["username", "3"],
-            ),
-            # Password
-            # Empty password
-            (
-                {
-                    "username": "username",
-                    "password": "",
-                    "email": "email@xyz.com",
-                },
-                ["password"],
-            ),
-            # Too short password
-            (
-                {
-                    "username": "username2",
-                    "password": "7_Chars",
-                    "email": "email@xyz.com",
-                },
-                ["password", "8"],
-            ),
-            # No digits in password
-            (
-                {
-                    "username": "username",
-                    "password": "No_Numbers",
-                    "email": "email@xyz.com",
-                },
-                ["password", "digit"],
-            ),
-            # No upper cases in password
-            (
-                {
-                    "username": "username",
-                    "password": "0_upper_cases",
-                    "email": "email@xyz.com",
-                },
-                ["password", "uppercase"],
-            ),
-            # No special chars in password
-            (
-                {
-                    "username": "username",
-                    "password": "0Specials",
-                    "email": "email@xyz.com",
-                },
-                ["password", "special"],
-            ),
-            # Email
-            # No @ in email
-            (
-                {
-                    "username": "username",
-                    "password": "P4S$VVord",
-                    "email": "eee",
-                },
-                ["email", "@"],
-            ),
-            # No text after @ in email
-            (
-                {
-                    "username": "username",
-                    "password": "P4S$VVord",
-                    "email": "XYZ@",
-                },
-                ["email", "@", "after"],
-            ),
-            # No text before @ in email
-            (
-                {
-                    "username": "username",
-                    "password": "P4S$VVord",
-                    "email": "@xyz.com",
-                },
-                ["email", "@", "before"],
-            ),
-            # No domain in email
-            (
-                {
-                    "username": "username",
-                    "password": "P4S$VVord",
-                    "email": "xyz@xyz",
-                },
-                ["email", "@", "after"],
-            ),
-        ],
-    )
-    async def test_create_incorrect(self, client, input_data, keywords):
-        response = client.post("/users/", json=input_data)
-        assert response.status_code == 422
-        assert all(keyword in str(response.json()) for keyword in keywords)
 
     async def test_get_correct(self, client, create_header):
         response = client.get("/users/", headers=create_header)
