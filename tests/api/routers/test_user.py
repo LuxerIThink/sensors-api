@@ -149,7 +149,7 @@ class TestUser:
             ),
         ],
     )
-    async def test_validators(self, client, create_json, edit_json, keywords):
+    async def test_validators(self, client, header, create_json, edit_json, keywords):
         # Check is create_json and edit_json are not the same
         for key, value in edit_json.items():
             if create_json[key] == value:
@@ -157,10 +157,18 @@ class TestUser:
         # Create new merged created_json and edit_json
         new_json = create_json.copy()
         new_json.update(edit_json)
-        response = client.post("/users/", json=new_json)
-        # Test
-        assert response.status_code == 422
-        assert all(keyword in str(response.json()) for keyword in keywords)
+        # Test edit
+        response_put = client.put("/users/", headers=header, json=new_json)
+        assert response_put.status_code == 422
+        assert all(keyword in str(response_put.json()) for keyword in keywords)
+        # Remove user
+        response_delete = client.delete("/users/", headers=header)
+        if response_delete.status_code != 200:
+            raise Exception("User not deleted")
+        # Test create
+        response_post = client.post("/users/", json=new_json)
+        assert response_post.status_code == 422
+        assert all(keyword in str(response_post.json()) for keyword in keywords)
 
     @pytest.mark.parametrize(
         "edit_json, keywords",
