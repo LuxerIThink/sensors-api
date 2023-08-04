@@ -35,7 +35,7 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="function")
-def user_data(client):
+def create_json(client):
     return {
         "username": "username",
         "password": "Pa$Sw0rd",
@@ -44,17 +44,22 @@ def user_data(client):
 
 
 @pytest.fixture(scope="function")
-def create_user(client, user_data):
-    response = client.post("/users/", json=user_data)
+def auth_json(create_json):
+    auth_json = create_json.copy()
+    auth_json.pop("email")
+    return auth_json
+
+
+@pytest.fixture(scope="function")
+def user(client, create_json):
+    response = client.post("/users/", json=create_json)
     return response.json()
 
 
 @pytest.fixture(scope="function")
-def create_header(client, create_user, user_data):
-    login_data = user_data.copy()
-    login_data.pop("email")
+def header(client, user, auth_json, create_json):
     header = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = client.post("/actions/token/", data=login_data, headers=header)
+    response = client.post("/actions/token/", data=auth_json, headers=header)
     data = response.json()
     token = f"{data['token_type']} {data['access_token']}"
     header = {"Authorization": token}
