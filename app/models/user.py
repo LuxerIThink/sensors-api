@@ -2,7 +2,6 @@ from argon2 import PasswordHasher
 from tortoise import fields
 from app.internal.validators import PasswordValidator, EmailValidator
 from .abstract import AbstractBaseModel
-from tortoise.contrib.pydantic import pydantic_model_creator
 from tortoise.validators import MinLengthValidator
 
 
@@ -19,11 +18,3 @@ class User(AbstractBaseModel):
         self.password = password_hasher.hash(self.password)
         self.email = self.email.lower()
         await super().save(*args, **kwargs)
-
-
-UserInPydantic = pydantic_model_creator(
-    User,
-    name="UserIn",
-    exclude_readonly=True,
-)
-UserOutPydantic = pydantic_model_creator(User, name="UserOut", exclude=("password",))

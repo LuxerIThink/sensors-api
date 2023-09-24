@@ -2,8 +2,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 from ..internal.authentication import authorize
-from ..models.user import UserOutPydantic, UserInPydantic, User
-
+from ..models.user import User
+from ..pydantics.user import UserInPydantic, UserOutPydantic
 
 router = APIRouter(
     prefix="/users",
