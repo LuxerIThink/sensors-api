@@ -14,7 +14,7 @@ services:
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
   api:
-    container_name: sensors-api
+    container_name: sensors-app
     build:
       context: ./
     image: sensors-api

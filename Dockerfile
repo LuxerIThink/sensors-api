@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY --chown=app_user:app_group . .
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8086"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8086"]
 
 EXPOSE 8086
 

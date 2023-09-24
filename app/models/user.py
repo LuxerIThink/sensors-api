@@ -1,6 +1,6 @@
 from argon2 import PasswordHasher
 from tortoise import fields
-from api.internal.validators import PasswordValidator, EmailValidator
+from app.internal.validators import PasswordValidator, EmailValidator
 from .abstract import AbstractBaseModel
 from tortoise.contrib.pydantic import pydantic_model_creator
 from tortoise.validators import MinLengthValidator

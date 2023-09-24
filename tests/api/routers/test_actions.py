@@ -1,5 +1,5 @@
 import pytest
-from api.models.user import User
+from app.models.user import User
 
 
 @pytest.mark.anyio

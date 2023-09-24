@@ -2,8 +2,8 @@ from argon2 import PasswordHasher
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-from api.internal.authentication import Token
-from api.models import User
+from app.internal.authentication import Token
+from app.models import User
 
 router = APIRouter(
     prefix="/actions",

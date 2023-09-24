@@ -1,6 +1,6 @@
 import pytest
 from argon2 import PasswordHasher
-from api.models.user import User
+from app.models.user import User
 
 
 @pytest.mark.anyio
@@ -20,7 +20,7 @@ class TestUser:
         response = client.post("/users/", json=data)
         assert response.status_code == 200
 
-        # Check json input with api output
+        # Check json input with app output
         output_data = response.json()
         assert output_data["uuid"]
         assert output_data["username"] == data["username"]

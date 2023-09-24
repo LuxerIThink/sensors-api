@@ -20,9 +20,9 @@ def connect_to_db(app: FastAPI) -> None:
                 }
             },
             "apps": {
-                "api": {
+                "app": {
                     "models": [
-                        "api.models",
+                        "app.models",
                     ],
                 }
             },
