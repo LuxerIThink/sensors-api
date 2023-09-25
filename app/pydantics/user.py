@@ -9,5 +9,5 @@ UserInPydantic = pydantic_model_creator(
 UserOutPydantic = pydantic_model_creator(
     User,
     name="UserOut",
-    exclude=("password",)
+    exclude=("password", "devices")
 )

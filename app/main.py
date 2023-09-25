@@ -1,7 +1,7 @@
+from .startup.orm import connect_to_db
 from fastapi import FastAPI
 from app.internal.exceptions_handlers import validation_exception_handler
 from .routers import actions, users
-from .startup.orm import connect_to_db
 from tortoise.exceptions import ValidationError
 from jose import JWTError
 from argon2.exceptions import VerifyMismatchError
