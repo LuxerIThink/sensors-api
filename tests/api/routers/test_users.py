@@ -154,17 +154,21 @@ class TestUser:
         for key, value in edit_json.items():
             if create_json[key] == value:
                 raise Exception(f"[{key}: {value}]: are the same, is incorrect")
+
         # Create new merged created_json and edit_json
         new_json = create_json.copy()
         new_json.update(edit_json)
+
         # Test edit
         response_put = client.put("/users/", headers=header, json=new_json)
         assert response_put.status_code == 422
         assert all(keyword in str(response_put.json()) for keyword in keywords)
+
         # Remove user
         response_delete = client.delete("/users/", headers=header)
         if response_delete.status_code != 200:
             raise Exception("User not deleted")
+
         # Test create
         response_post = client.post("/users/", json=new_json)
         assert response_post.status_code == 422
@@ -198,9 +202,11 @@ class TestUser:
         new_json = create_json.copy()
         new_json.update(edit_json)
         response_first = client.post("/users/", json=create_json)
+
         # Create first user
         if response_first.status_code != 200:
             raise Exception("User not exist, but it should")
+
         # Test
         response = client.post("/users/", json=new_json)
         assert response.status_code == 422
