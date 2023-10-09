@@ -34,8 +34,8 @@ def anyio_backend():
     return "asyncio"
 
 
-@pytest.fixture(scope="function")
-def create_json(client):
+@pytest.fixture(scope="session")
+def user_json():
     return {
         "username": "username",
         "password": "Pa$Sw0rd",
@@ -43,24 +43,38 @@ def create_json(client):
     }
 
 
-@pytest.fixture(scope="function")
-def auth_json(create_json):
-    auth_json = create_json.copy()
+@pytest.fixture(scope="session")
+def auth_json(user_json):
+    auth_json = user_json.copy()
     auth_json.pop("email")
     return auth_json
 
 
 @pytest.fixture(scope="function")
-def user(client, create_json):
-    response = client.post("/users/", json=create_json)
+def user(client, user_json):
+    response = client.post("/users/", json=user_json)
     return response.json()
 
 
 @pytest.fixture(scope="function")
-def header(client, user, auth_json, create_json):
+def auth_header(client, user, auth_json, user_json):
     header = {"Content-Type": "application/x-www-form-urlencoded"}
     response = client.post("/actions/token/", data=auth_json, headers=header)
     data = response.json()
     token = f"{data['token_type']} {data['access_token']}"
     header = {"Authorization": token}
     return header
+
+
+@pytest.fixture(scope="session")
+def device_json():
+    return {
+        "name": "test_device",
+        "is_shared": True,
+    }
+
+
+@pytest.fixture(scope="function")
+def device(client, auth_header, device_json):
+    response = client.post("/devices/", headers=auth_header, json=device_json)
+    return response.json()
