@@ -23,11 +23,11 @@ async def create_user(user: UserInPydantic):
 
 
 @router.put("/", response_model=UserOutPydantic)
-async def edit_user(user: UserInPydantic, uuid: Annotated[dict, Depends(authorize)]):
+async def edit_user(user_in: UserInPydantic, uuid: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
-        await User.filter(uuid=uuid).update(**user.dict())
-        user_new = await User.get(uuid=uuid)
-    return user_new
+        user = await User.get(uuid=uuid)
+        await user.update_from_dict(user_in.dict()).save()
+    return user
 
 
 @router.delete("/")
