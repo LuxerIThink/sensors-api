@@ -30,7 +30,7 @@ async def edit_user(user_in: UserInPydantic, uuid: Annotated[dict, Depends(autho
     return user
 
 
-@router.delete("/")
+@router.delete("/", response_model=UserOutPydantic)
 async def remove_user(uuid: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
         user = await User.get(uuid=uuid)
