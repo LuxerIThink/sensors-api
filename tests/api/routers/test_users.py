@@ -11,7 +11,7 @@ class TestUser:
         password_hasher = PasswordHasher()
         return password_hasher
 
-    async def test_create(self, client):
+    async def test_create(self, client, password_hasher):
         # Input json
         user_json = {
             "username": "username",
@@ -19,16 +19,13 @@ class TestUser:
             "email": "email@xyz.com",
         }
 
-        # Preparations
-        password_hasher = PasswordHasher()
-
         # Create new user
         response = client.post("/users/", json=user_json)
         assert response.status_code == 200
 
         # Get data
         response_json = response.json()
-        user = await User.get(username=user_json["username"])
+        user = await User.get(uuid=response_json["uuid"])
 
         # Check input -> db
         assert user_json["username"] == user.username
@@ -42,14 +39,14 @@ class TestUser:
         assert "password" not in response_json
         assert user.email == user_json["email"].lower()
 
-    async def test_get(self, client, auth_header, password_hasher, user_json):
+    async def test_get(self, client, password_hasher, auth_header, user_json):
         # Get actual user
         response = client.get("/users/", headers=auth_header)
         assert response.status_code == 200
 
         # Get data
         response_json = response.json()
-        user = await User.get(username=user_json["username"])
+        user = await User.get(uuid=response_json["uuid"])
 
         # Check input -> db
         assert user_json["username"] == user.username
@@ -63,7 +60,7 @@ class TestUser:
         assert "password" not in response_json
         assert user.email == user_json["email"].lower()
 
-    async def test_edit(self, client, auth_header, password_hasher, user_json):
+    async def test_edit(self, client, password_hasher, auth_header, user_json):
         # Input data
         new_user_json = {
             "username": "other_name",
@@ -71,18 +68,18 @@ class TestUser:
             "email": "other_mail@mail.xyz",
         }
 
-        # Check is base user data and other user data are not the same
+        # Compare existing user to edited user
         for key, value in new_user_json.items():
             if user_json[key] == value:
                 raise Exception(f"[{key}: {value}]: are the same, but they shouldn't")
 
         # Check user existence
-        response_get_before = client.get("/users/", headers=auth_header)
-        if response_get_before.status_code != 200:
+        response_before = client.get("/users/", headers=auth_header)
+        if response_before.status_code != 200:
             raise Exception("User not exist, but it should")
 
         # Get user before edit
-        old_user = await User.get(email=user_json["email"].lower())
+        old_user = await User.get(uuid=response_before.json()["uuid"])
 
         # Edit user request
         response = client.put("/users/", headers=auth_header, json=new_user_json)
@@ -90,7 +87,7 @@ class TestUser:
 
         # Get data
         response_json = response.json()
-        user = await User.get(email=new_user_json["email"].lower())
+        user = await User.get(uuid=response_json["uuid"])
 
         # Check UUID
         assert old_user.uuid == user.uuid
@@ -107,21 +104,38 @@ class TestUser:
         assert password_hasher.verify(user.password, new_user_json["password"]) is True
         assert user.email == new_user_json["email"].lower()
 
-    async def test_remove(self, client, auth_header):
+    async def test_remove(self, client, password_hasher, auth_header, user_json):
         # Check user existence before remove
-        response_get_before = client.get("/users/", headers=auth_header)
-        assert response_get_before.status_code == 200
+        response_before = client.get("/users/", headers=auth_header)
+        assert response_before.status_code == 200
+
+        # Get data
+        user = await User.get(uuid=response_before.json()["uuid"])
 
         # Remove request
         response_delete = client.delete("/users/", headers=auth_header)
         assert response_delete.status_code == 200
+
+        response_json = response_delete.json()
+
+        # Check output data
+        assert response_json["uuid"] == str(user.uuid)
+        assert response_json["username"] == user_json["username"]
+        assert "password" not in response_json
+        assert response_json["email"] == user_json["email"].lower()
+
+        # Check input with db
+        assert user.username == user_json["username"]
+        assert user.password != user_json["password"]
+        assert password_hasher.verify(user.password, user_json["password"]) is True
+        assert user.email == user_json["email"].lower()
 
         # Check user existence after remove
         response_get_after = client.get("/users/", headers=auth_header)
         assert response_get_after.status_code == 404
 
     @pytest.mark.parametrize(
-        "edit_json, keywords",
+        "edits_json, keywords",
         [
             # Lengths
             # too long username > 32 chars
@@ -183,34 +197,34 @@ class TestUser:
             ),
         ],
     )
-    async def test_validators(self, client, auth_header, user_json, edit_json, keywords):
+    async def test_validators(self, client, auth_header, user_json, edits_json, keywords):
         # Create new merged created_json and edit_json
-        new_json = user_json.copy()
-        new_json.update(edit_json)
+        edited_user_json = user_json.copy()
+        edited_user_json.update(edits_json)
 
-        # Check is create_json and edit_json are not the same
-        for key, value in edit_json.items():
+        # Compare existing user to edited user
+        for key, value in edits_json.items():
             if user_json[key] == value:
                 raise Exception(f"[{key}: {value}]: are the same, is incorrect")
 
         # Test edit
-        response_put = client.put("/users/", headers=auth_header, json=new_json)
+        response_put = client.put("/users/", headers=auth_header, json=edited_user_json)
         assert response_put.status_code == 422
+        # Check response message
         assert all(keyword in str(response_put.json()) for keyword in keywords)
 
         # Remove user
         response_delete = client.delete("/users/", headers=auth_header)
-        if response_delete.status_code != 200:
-            raise Exception("User not deleted, but it should")
+        assert response_delete.status_code == 200
 
         # Test create
-        response_post = client.post("/users/", json=new_json)
+        response_post = client.post("/users/", json=edited_user_json)
         assert response_post.status_code == 422
         # Check response message
         assert all(keyword in str(response_post.json()) for keyword in keywords)
 
     @pytest.mark.parametrize(
-        "edit_json, keywords",
+        "edits_json, keywords",
         [
             # By username and email
             (
@@ -237,23 +251,25 @@ class TestUser:
             ),
         ],
     )
-    async def test_create_existing_user(self, client, user_json, edit_json, keywords):
-        # Create new merged create_json and edit_json
-        new_json = user_json.copy()
-        new_json.update(edit_json)
+    async def test_create_existing_user(self, client, user_json, edits_json, keywords):
+        # Create new merged default user json and edits
+        edited_user_json = user_json.copy()
+        edited_user_json.update(edits_json)
+
+        # Create first user
         response_first = client.post("/users/", json=user_json)
 
         # Create first user
         assert response_first.status_code == 200
 
         # Test creating the same user
-        response = client.post("/users/", json=new_json)
+        response = client.post("/users/", json=edited_user_json)
         assert response.status_code == 422
         # Check response message
         assert [keyword in str(response.json()) for keyword in keywords]
 
     @pytest.mark.parametrize(
-        "header, keywords",
+        "auth_header, keywords",
         [
             (
                 {
@@ -267,8 +283,8 @@ class TestUser:
             ),
         ],
     )
-    async def test_wrong_token(self, client, header, keywords):
-        response = client.get("/users/", headers=header)
+    async def test_wrong_token(self, client, auth_header, keywords):
+        response = client.get("/users/", headers=auth_header)
         assert response.status_code == 422
         # Check response message
         assert all(keyword in str(response.json()) for keyword in keywords)
