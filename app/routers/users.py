@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 from ..internal.authentication import authorize
 from ..models.user import User
-from ..pydantics.user import UserInPydantic, UserOutPydantic
+from ..pydantics.user import UserInPydantic, UserOutPydantic, UserInPydanticAllOptional
 
 router = APIRouter(
     prefix="/users",
@@ -23,10 +23,11 @@ async def create_user(user: UserInPydantic):
 
 
 @router.put("/", response_model=UserOutPydantic)
-async def edit_user(user_in: UserInPydantic, uuid: Annotated[dict, Depends(authorize)]):
+async def edit_user(user_in: UserInPydanticAllOptional, uuid: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
         user = await User.get(uuid=uuid)
-        await user.update_from_dict(user_in.dict()).save()
+        user_dict = user_in.dict(exclude_none=True)
+        await user.update_from_dict(user_dict).save(update_fields=user_dict)
     return user
 
 

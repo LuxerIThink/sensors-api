@@ -15,6 +15,8 @@ class User(AbstractBaseModel):
 
     async def save(self, *args, **kwargs):
         password_hasher = PasswordHasher()
-        self.password = password_hasher.hash(self.password)
-        self.email = self.email.lower()
+        if self.password:
+            self.password = password_hasher.hash(self.password)
+        if self.email:
+            self.email = self.email.lower()
         await super().save(*args, **kwargs)
