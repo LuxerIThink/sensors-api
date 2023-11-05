@@ -1,6 +1,6 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
 
-from app.internal.pydantics import AllOptional
+from app.internal.pydantics import all_optional
 from app.models import User
 
 UserInPydantic = pydantic_model_creator(
@@ -10,8 +10,7 @@ UserInPydantic = pydantic_model_creator(
 )
 
 
-class UserInPydanticAllOptional(UserInPydantic, metaclass=AllOptional):
-    pass
+UserInPydanticAllOptional = all_optional(UserInPydantic)
 
 
 UserOutPydantic = pydantic_model_creator(

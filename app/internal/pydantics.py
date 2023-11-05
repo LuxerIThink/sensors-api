@@ -1,15 +1,16 @@
-from typing import Optional
-
-import pydantic
+from pydantic import create_model
 
 
-class AllOptional(pydantic.main.ModelMetaclass):
-    def __new__(self, name, bases, namespaces, **kwargs):
-        annotations = namespaces.get('__annotations__', {})
-        for base in bases:
+def all_optional(Pydantic):
+    annotations = {}
+    for base in Pydantic.__mro__:
+        if hasattr(base, '__annotations__'):
             annotations.update(base.__annotations__)
-        for field in annotations:
-            if not field.startswith('__'):
-                annotations[field] = Optional[annotations[field]]
-        namespaces['__annotations__'] = annotations
-        return super().__new__(self, name, bases, namespaces, **kwargs)
+
+    for field_name, field_info in Pydantic.__annotations__.items():
+        if not field_name.startswith('__'):
+            field_type = annotations[field_name]
+            if not hasattr(field_type, "__args__") or len(field_type.__args__) == 1:
+                annotations[field_name] = (field_type, None)
+
+    return create_model(Pydantic.__name__ + 'AllOptional', **annotations)
