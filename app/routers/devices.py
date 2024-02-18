@@ -19,13 +19,13 @@ async def get_device(uuid: str, user_id: Annotated[dict, Depends(authorize)],):
 
 @router.post("/", response_model=DeviceOutPydantic)
 async def create_device(user_id: Annotated[dict, Depends(authorize)], device: DeviceInPydantic):
-    return await Device.create(**device.dict(), user_id=user_id)
+    return await Device.create(**device.model_dump(), user_id=user_id)
 
 
 @router.put("/{uuid}", response_model=DeviceOutPydantic)
 async def edit_device(uuid: str, user_id: Annotated[dict, Depends(authorize)], device: DeviceInPydantic):
     async with in_transaction():
-        await Device.filter(user_id=user_id, uuid=uuid).update(**device.dict(), user_id=user_id)
+        await Device.filter(user_id=user_id, uuid=uuid).update(**device.model_dump(), user_id=user_id)
         device_new = await Device.get(uuid=uuid, user_id=user_id)
     return device_new
 
