@@ -67,7 +67,7 @@ class TestUser:
                 {
                     "username": "other_name",
                     "password": "N0th1ng!",
-                    "email": "other_mail@mail.xyz",
+                    "email": "other_mail@mail.com",
                 }
             ),
             (
@@ -82,7 +82,7 @@ class TestUser:
             ),
             (
                 {
-                    "email": "new_mail@mail.xyz",
+                    "email": "new_mail@mail.com",
                 }
             ),
         ]
