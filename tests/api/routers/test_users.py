@@ -290,6 +290,26 @@ class TestUser:
         assert [keyword in str(response.json()) for keyword in keywords]
 
     @pytest.mark.parametrize(
+        "edits_json",
+        [
+            (
+                {
+                    "uuid": "xD",
+                }
+            ),
+        ]
+    )
+    async def test_edit_uuid(self, client, password_hasher, auth_header, user_json, edits_json):
+        # Check user existence before edit
+        response_before = client.get("/users/", headers=auth_header)
+        if response_before.status_code != 200:
+            raise Exception("User not exist, but it should")
+
+        # Edit user
+        response = client.put("/users/", headers=auth_header, json=edits_json)
+        assert response.status_code == 422
+
+    @pytest.mark.parametrize(
         "auth_header, keywords",
         [
             (

@@ -1,6 +1,5 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
 
-from app.internal.pydantics import all_optional
 from app.models import User
 
 UserInPydantic = pydantic_model_creator(
@@ -10,7 +9,12 @@ UserInPydantic = pydantic_model_creator(
 )
 
 
-UserInPydanticAllOptional = all_optional(UserInPydantic)
+UserInPydanticAllOptional = pydantic_model_creator(
+    User,
+    name="UserInEdit",
+    exclude_readonly=True,
+    optional=("username", "password", "email")
+)
 
 
 UserOutPydantic = pydantic_model_creator(
@@ -18,5 +22,3 @@ UserOutPydantic = pydantic_model_creator(
     name="UserOut",
     exclude=("password", "devices")
 )
-
-
