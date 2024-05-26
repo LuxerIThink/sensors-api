@@ -3,7 +3,7 @@ from tortoise.models import Model
 
 
 class AbstractBaseModel(Model):
-    uuid = fields.UUIDField(pk=True)
+    uuid = fields.UUIDField(primary_key=True)
 
     class Meta:
         abstract = True
