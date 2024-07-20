@@ -5,25 +5,25 @@ designed to manage sensor data with PostgreSQL database.
 
 ## ❇️ Key features:
 
-- good api documentation (Swagger UI made by FastAPI) 📄
-- transactional operations and support for different databases (Tortoise ORM) 🗄
-- easy deployment and scalability with Docker and Docker Compose 🚚
-- models fields verification (Pydantics) 🖊
-- user authentication (OAuth2) 🔑
-- passwords encryption (Argon2) 🔒
+- FastAPI async RESTful API 📄
+- Tortoise ORM async transactional PostgreSQL management 🗄
+- Docker and Docker Compose easy deployment 🚚
+- Pydantics models fields verification 🖊
+- OAuth2 user authentication 🔑
+- Argon2 passwords encryption 🔒
 - Docker container healthcheck :heart:
-- testing with PyTest in test SQLite DB (not on production DB) ✅
+- PyTest automatic tests in mock SQLite3 database ✅
 
 ## 🛂 Requirements:
 
 - Internet connection (to build) 📶
 - Docker 📦
 - Docker Compose 🚛
-- WSL (on Windows) 💻
+- WSL and Docker Desktop (on Windows) 💻
 
 ## ⚙️ Build and run
 
-1. set enviromental variables like:
+1. Set environmental variables:
 
 - DB_NAME
 - DB_USER
@@ -36,10 +36,10 @@ designed to manage sensor data with PostgreSQL database.
 docker compose up
 ```
 
-## ✅ Testing
+## ✅ Testing and Coverage
 
-Run this command in project files inside docker container:
+Run this command inside docker container:
 
 ```bash
-python3 -m pytest
+pytest --cov=.
 ```
