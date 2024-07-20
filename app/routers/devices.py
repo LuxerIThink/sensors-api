@@ -30,7 +30,7 @@ async def edit_device(uuid: str, user_id: Annotated[dict, Depends(authorize)], d
     return device_new
 
 
-@router.delete("/{uuid}")
+@router.delete("/{uuid}", response_model=DeviceOutPydantic)
 async def remove_device(uuid: str, user_id: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
         device = await Device.get(uuid=uuid, user_id=user_id)
