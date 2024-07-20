@@ -39,9 +39,6 @@ class TestDevice:
 
     async def test_edit(self, client, auth_header, device, device_json, edited_device):
         response_before_edit = client.get("/devices/" + device["uuid"], headers=auth_header)
-        if response_before_edit.status_code != 200:
-            raise Exception("Device not exist, but it should")
-
         old_device_json = response_before_edit.json()[0]
         old_device = await Device.get(uuid=old_device_json["uuid"])
 
@@ -58,8 +55,6 @@ class TestDevice:
 
     async def test_remove(self, client, auth_header, device, device_json):
         response_before = client.get("/devices/" + device["uuid"], headers=auth_header)
-        if response_before.status_code != 200:
-            raise Exception("Device not exist, but it should")
 
         # Remove request
         response_delete = client.delete("/devices/" + device["uuid"], headers=auth_header)

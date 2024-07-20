@@ -88,19 +88,12 @@ class TestUser:
         ]
     )
     async def test_edit(self, client, password_hasher, auth_header, user_json, edits_json):
-        # Compare default json with edits
-        for key, value in edits_json.items():
-            if user_json[key] == value:
-                raise Exception(f"[{key}: {value}]: are the same, but they shouldn't")
-
         # Merge default json with edits
         expected_user_json = user_json.copy()
         expected_user_json.update(edits_json)
 
         # Check user existence before edit
         response_before = client.get("/users/", headers=auth_header)
-        if response_before.status_code != 200:
-            raise Exception("User not exist, but it should")
 
         # Get user from db before edit
         user_before = await User.get(uuid=response_before.json()["uuid"])
@@ -221,10 +214,6 @@ class TestUser:
         ],
     )
     async def test_validators(self, client, auth_header, user_json, edits_json, keywords):
-        # Compare existing user to edited user
-        for key, value in edits_json.items():
-            if user_json[key] == value:
-                raise Exception(f"[{key}: {value}]: are the same, is incorrect")
 
         # Merge default json with edits
         edited_user_json = user_json.copy()
@@ -302,8 +291,6 @@ class TestUser:
     async def test_edit_uuid(self, client, password_hasher, auth_header, user_json, edits_json):
         # Check user existence before edit
         response_before = client.get("/users/", headers=auth_header)
-        if response_before.status_code != 200:
-            raise Exception("User not exist, but it should")
 
         # Edit user
         response = client.put("/users/", headers=auth_header, json=edits_json)

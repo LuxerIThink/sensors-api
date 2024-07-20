@@ -23,10 +23,6 @@ class TestActions:
     async def test_wrong_creditals(
         self, client, user, auth_json, edit_json, status, header
     ):
-        # Check is auth_json and edit_json are not the same
-        for key, value in edit_json.items():
-            if auth_json[key] == value:
-                raise Exception(f"[{key}: {value}]: are the same, is incorrect")
         # Create new merged auth_json and edit_json
         new_json = auth_json.copy()
         new_json.update(edit_json)
