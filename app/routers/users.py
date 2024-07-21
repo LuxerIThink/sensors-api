@@ -26,7 +26,7 @@ async def create_user(user: UserInPydantic):
 async def edit_user(user_in: UserInPydanticAllOptional, uuid: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
         user = await User.get(uuid=uuid)
-        user_dict = user_in.model_dump(exclude_none=True)
+        user_dict = user_in.model_dump(exclude_none=True, exclude_unset=True)
         await user.update_from_dict(user_dict).save(update_fields=user_dict)
     return user
 
