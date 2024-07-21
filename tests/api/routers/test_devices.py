@@ -28,7 +28,7 @@ class TestDevice:
         assert user.is_shared == device_json["is_shared"]
 
     async def test_get(self, client, auth_header, device, device_json):
-        response = client.get("/devices/" + device["uuid"], headers=auth_header)
+        response = client.get("/devices/" + "?uuid=" + device["uuid"], headers=auth_header)
         assert response.status_code == 200
 
         output_data = response.json()[0]
@@ -37,8 +37,26 @@ class TestDevice:
         assert output_data["name"] == device_json["name"]
         assert output_data["is_shared"] == device_json["is_shared"]
 
+    async def test_multiple_get(self, client, auth_header, device, device_json, edited_device):
+        client.post("/devices/", headers=auth_header, json=edited_device)
+
+        response = client.get("/devices/", headers=auth_header)
+        assert response.status_code == 200
+
+        device1 = response.json()[0]
+
+        assert device1["uuid"]
+        assert device1["name"] == device_json["name"]
+        assert device1["is_shared"] == device_json["is_shared"]
+
+        device2 = response.json()[1]
+
+        assert device2["uuid"]
+        assert device2["name"] == edited_device["name"]
+        assert device2["is_shared"] == edited_device["is_shared"]
+
     async def test_edit(self, client, auth_header, device, device_json, edited_device):
-        response_before_edit = client.get("/devices/" + device["uuid"], headers=auth_header)
+        response_before_edit = client.get("/devices/" + "?uuid=" + device["uuid"], headers=auth_header)
         old_device_json = response_before_edit.json()[0]
         old_device = await Device.get(uuid=old_device_json["uuid"])
 

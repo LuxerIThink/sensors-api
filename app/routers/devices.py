@@ -11,9 +11,9 @@ router = APIRouter(
 )
 
 
-@router.get("/{uuid}", response_model=DevicesOutPydantic)
-async def get_device(uuid: str, user_id: Annotated[dict, Depends(authorize)],):
-    devices = await Device.filter(uuid=uuid, user_id=user_id)
+@router.get("/", response_model=DevicesOutPydantic)
+async def get_device(user_id: Annotated[dict, Depends(authorize)], uuid: str = ""):
+    devices = await Device.filter(uuid__contains=uuid, user_id=user_id)
     return devices
 
 
