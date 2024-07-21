@@ -4,12 +4,6 @@ from app.models import Device
 
 @pytest.mark.anyio
 class TestDevice:
-    @pytest.fixture(scope="session")
-    def edited_device(self):
-        return {
-            "name": "other_name",
-            "is_shared": True,
-        }
 
     async def test_create(self, client, auth_header, device_json):
         # Create new device
@@ -37,8 +31,19 @@ class TestDevice:
         assert output_data["name"] == device_json["name"]
         assert output_data["is_shared"] == device_json["is_shared"]
 
-    async def test_multiple_get(self, client, auth_header, device, device_json, edited_device):
-        client.post("/devices/", headers=auth_header, json=edited_device)
+    @pytest.mark.parametrize(
+        "edits_json",
+        [
+            (
+                    {
+                        "name": "other_name",
+                        "is_shared": False,
+                    }
+            ),
+        ]
+    )
+    async def test_multiple_get(self, client, auth_header, device, device_json, edits_json):
+        client.post("/devices/", headers=auth_header, json=edits_json)
 
         response = client.get("/devices/", headers=auth_header)
         assert response.status_code == 200
@@ -52,27 +57,46 @@ class TestDevice:
         device2 = response.json()[1]
 
         assert device2["uuid"]
-        assert device2["name"] == edited_device["name"]
-        assert device2["is_shared"] == edited_device["is_shared"]
+        assert device2["name"] == edits_json["name"]
+        assert device2["is_shared"] == edits_json["is_shared"]
 
-    async def test_edit(self, client, auth_header, device, device_json, edited_device):
-        response_before_edit = client.get("/devices/" + "?uuid=" + device["uuid"], headers=auth_header)
-        old_device_json = response_before_edit.json()[0]
-        old_device = await Device.get(uuid=old_device_json["uuid"])
+    @pytest.mark.parametrize(
+        "edits_json",
+        [
+            (
+                {
+                    "name": "other_name",
+                    "is_shared": False,
+                }
+            ),
+            # Check partialy change
+            (
+                {
+                    "name": "other",
+                }
+            ),
+            (
+                {
+                    "is_shared": False,
+                }
+            ),
+        ]
+    )
+    async def test_edit(self, client, auth_header, device, device_json, edits_json):
+        expected_device_json = device_json.copy()
+        expected_device_json.update(edits_json)
 
-        response = client.put("/devices/" + old_device_json["uuid"], headers=auth_header, json=edited_device)
+        response = client.put("/devices/" + device["uuid"], headers=auth_header, json=edits_json)
         assert response.status_code == 200
+        response_json = response.json()
 
-        new_device_json = response.json()
-
-        new_device = await Device.get(uuid=new_device_json["uuid"])
-
-        assert old_device.uuid == new_device.uuid
-        assert new_device_json["name"] == edited_device["name"]
-        assert new_device_json["is_shared"] == edited_device["is_shared"]
+        assert response_json["uuid"] == device["uuid"]
+        assert response_json["name"] == expected_device_json["name"]
+        assert response_json["is_shared"] == expected_device_json["is_shared"]
 
     async def test_remove(self, client, auth_header, device, device_json):
         response_before = client.get("/devices/" + device["uuid"], headers=auth_header)
+        assert response_before.status_code == 200
 
         # Remove request
         response_delete = client.delete("/devices/" + device["uuid"], headers=auth_header)

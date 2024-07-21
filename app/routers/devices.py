@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from app.internal.authentication import authorize
 from tortoise.transactions import in_transaction
 from app.models import Device
-from app.pydantics.device import DeviceOutPydantic, DeviceInPydantic, DevicesOutPydantic
+from app.pydantics.device import DeviceOutPydantic, DeviceInPydantic, DevicesOutPydantic, DeviceInPydanticAllOptional
 
 router = APIRouter(
     prefix="/devices",
@@ -23,11 +23,12 @@ async def create_device(user_id: Annotated[dict, Depends(authorize)], device: De
 
 
 @router.put("/{uuid}", response_model=DeviceOutPydantic)
-async def edit_device(uuid: str, user_id: Annotated[dict, Depends(authorize)], device: DeviceInPydantic):
+async def edit_device(uuid: str, user_id: Annotated[dict, Depends(authorize)], device_in: DeviceInPydanticAllOptional):
     async with in_transaction():
-        await Device.filter(user_id=user_id, uuid=uuid).update(**device.model_dump(), user_id=user_id)
-        device_new = await Device.get(uuid=uuid, user_id=user_id)
-    return device_new
+        device = await Device.get(uuid=uuid, user_id=user_id)
+        device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
+        await device.update_from_dict(device_dict).save(update_fields=device_dict)
+    return device
 
 
 @router.delete("/{uuid}", response_model=DeviceOutPydantic)
