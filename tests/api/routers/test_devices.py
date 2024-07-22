@@ -95,8 +95,8 @@ class TestDevice:
         assert response_json["is_shared"] == expected_device_json["is_shared"]
 
     async def test_remove(self, client, auth_header, device, device_json):
-        response_before = client.get("/devices/" + device["uuid"], headers=auth_header)
-        assert response_before.status_code == 200
+        response = client.get("/devices/" + "?uuid=" + device["uuid"], headers=auth_header)
+        assert response.status_code == 200
 
         # Remove request
         response_delete = client.delete("/devices/" + device["uuid"], headers=auth_header)
