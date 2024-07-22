@@ -24,6 +24,7 @@ DeviceOutPydantic = pydantic_model_creator(
 
 DevicesOutPydantic = pydantic_queryset_creator(
     Device,
+    name="DevicesOut",
     exclude=("sensors", "user", "user_id"),
 )
 
