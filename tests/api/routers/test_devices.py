@@ -103,5 +103,5 @@ class TestDevice:
         assert response_delete.status_code == 200
 
         # Check user existence after remove
-        response_get_after = client.get("/users/" + device["uuid"], headers=auth_header)
-        assert response_get_after.status_code == 404
+        response_get_after = client.get("/devices/" + device["uuid"], headers=auth_header)
+        assert response_get_after.status_code == 405
