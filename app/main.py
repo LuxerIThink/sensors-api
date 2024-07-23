@@ -15,6 +15,7 @@ Tortoise.init_models(["app.models"], "app")
 app.include_router(import_module("app.routers.actions").router)
 app.include_router(import_module("app.routers.users").router)
 app.include_router(import_module("app.routers.devices").router)
+app.include_router(import_module("app.routers.sensors").router)
 
 app.add_exception_handler(ValidationError, validation_exception_handler)
 app.add_exception_handler(JWTError, validation_exception_handler)
