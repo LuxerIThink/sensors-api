@@ -35,5 +35,5 @@ async def edit_user(user_in: UserInPydanticAllOptional, uuid: Annotated[dict, De
 async def remove_user(uuid: Annotated[dict, Depends(authorize)]):
     async with in_transaction():
         user = await User.get(uuid=uuid)
-        await User.filter(uuid=uuid).delete()
+        await user.delete()
     return user
