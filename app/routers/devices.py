@@ -23,16 +23,16 @@ async def create_device(user_id: Annotated[dict, Depends(authorize)], device: De
 
 
 @router.put("/{uuid}", response_model=DeviceOutPydantic)
-async def edit_device(uuid: str, user_id: Annotated[dict, Depends(authorize)], device_in: DeviceInPydanticAllOptional):
+async def edit_device(user_id: Annotated[dict, Depends(authorize)], uuid: str, device_in: DeviceInPydanticAllOptional):
     async with in_transaction():
         device = await Device.get(uuid=uuid, user_id=user_id)
         device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
-        await device.update_from_dict(device_dict).save(update_fields=device_dict)
+        await device.update_from_dict(device_dict).save(update_fields=device_dict.keys())
     return device
 
 
 @router.delete("/{uuid}", response_model=DeviceOutPydantic)
-async def remove_device(uuid: str, user_id: Annotated[dict, Depends(authorize)]):
+async def remove_device(user_id: Annotated[dict, Depends(authorize)], uuid: str):
     async with in_transaction():
         device = await Device.get(uuid=uuid, user_id=user_id)
         await device.delete()
