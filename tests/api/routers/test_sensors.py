@@ -40,7 +40,7 @@ class TestSensors:
                     "unit": "other_device",
                 }
             ),
-            # Check partialy change
+            # Check partially change
             (
                 {
                     "name": "other",

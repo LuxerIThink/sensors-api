@@ -69,7 +69,7 @@ class TestDevice:
                     "is_shared": False,
                 }
             ),
-            # Check partialy change
+            # Check partially change
             (
                 {
                     "name": "other",

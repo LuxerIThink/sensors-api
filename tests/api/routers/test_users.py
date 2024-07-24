@@ -11,14 +11,7 @@ class TestUser:
         password_hasher = PasswordHasher()
         return password_hasher
 
-    async def test_create(self, client, password_hasher):
-        # Input json
-        user_json = {
-            "username": "username",
-            "password": "Pa$Sw0rd",
-            "email": "email@xyz.com",
-        }
-
+    async def test_create(self, client, password_hasher, user_json):
         # Create user
         response = client.post("/users/", json=user_json)
         assert response.status_code == 200

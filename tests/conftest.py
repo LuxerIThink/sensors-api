@@ -79,6 +79,7 @@ def device(client, auth_header, device_json):
     response = client.post("/devices/", headers=auth_header, json=device_json)
     return response.json()
 
+
 @pytest.fixture(scope="session")
 def sensor_json():
     return {
