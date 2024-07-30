@@ -93,3 +93,15 @@ def sensor(client, auth_header, device, sensor_json):
     response = client.post("/sensors/" + device["uuid"], headers=auth_header, json=sensor_json)
     return response.json()
 
+@pytest.fixture(scope="session")
+def measurement_json():
+    return {
+        "time": "2024-07-30T14:48:00Z",
+        "value": 5.0,
+    }
+
+@pytest.fixture(scope="function")
+def measurement(client, auth_header, sensor, measurement_json):
+    response = client.post("/measurements/" + sensor["uuid"], headers=auth_header, json=measurement_json)
+    return response.json()
+
