@@ -12,7 +12,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+      test: pg_isready -U ${DB_USER} -d ${DB_NAME}
   api:
     container_name: sensors-app
     build:
@@ -32,6 +32,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     links:
       - db
+    healthcheck:
+      test: curl -f http://localhost:8086/docs || exit 1
+      interval: 5m
+      timeout: 2s
+      retries: 3
 
 volumes:
   database:

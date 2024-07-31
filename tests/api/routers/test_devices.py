@@ -5,63 +5,60 @@ from app.models import Device
 @pytest.mark.anyio
 class TestDevice:
 
-    async def test_create(self, client, auth_header, device_json):
-        # Create new device
-        response = client.post("/devices/", headers=auth_header, json=device_json)
-        assert response.status_code == 200
+    async def test_create(self, client, header, device_json):
+        # Check existence
+        get = client.get("/devices/", headers=header)
+        assert get.json() == []
 
-        # Check json input with app output
-        output_data = response.json()
-        assert output_data["uuid"]
-        assert output_data["name"] == device_json["name"]
-        assert output_data["is_shared"] == device_json["is_shared"]
+        # Create
+        create = client.post("/devices/", headers=header, json=device_json)
+        assert create.status_code == 200
 
-        # Check json input with db data
-        user = await Device.filter(name=device_json["name"]).first()
-        assert user.name == device_json["name"]
-        assert user.is_shared == device_json["is_shared"]
+        # Check response
+        response = create.json()
+        assert response["uuid"]
+        assert response["name"] == device_json["name"]
+        assert response["is_shared"] == device_json["is_shared"]
 
-    async def test_get(self, client, auth_header, device, device_json):
-        response = client.get("/devices/" + "?uuid=" + device["uuid"], headers=auth_header)
-        assert response.status_code == 200
+        # Check record
+        record = await Device.filter(uuid=response["uuid"]).first()
+        assert record.name == device_json["name"]
+        assert record.is_shared == device_json["is_shared"]
 
-        output_data = response.json()[0]
+    async def test_get(self, client, header, device, device_json):
+        # Get
+        get = client.get(f"/devices/?uuid={device['uuid']}", headers=header)
+        assert get.status_code == 200
 
-        assert output_data["uuid"]
-        assert output_data["name"] == device_json["name"]
-        assert output_data["is_shared"] == device_json["is_shared"]
+        # Check response
+        response = get.json()[0]
+        assert response["uuid"]
+        assert response["name"] == device_json["name"]
+        assert response["is_shared"] == device_json["is_shared"]
 
     @pytest.mark.parametrize(
-        "edits_json",
+        "device2_json",
         [
             (
-                    {
-                        "name": "other_name",
-                        "is_shared": False,
-                    }
+                {
+                    "name": "other_name",
+                    "is_shared": False,
+                }
             ),
-        ]
+        ],
     )
-    async def test_multiple_get(self, client, auth_header, device, device_json, edits_json):
-        client.post("/devices/", headers=auth_header, json=edits_json)
+    async def test_multiple_get(self, client, header, device, device2_json):
+        # Add second record
+        create2 = client.post("/devices/", headers=header, json=device2_json)
+        assert create2.status_code == 200
 
-        response = client.get("/devices/", headers=auth_header)
-        assert response.status_code == 200
-
-        device1 = response.json()[0]
-
-        assert device1["uuid"]
-        assert device1["name"] == device_json["name"]
-        assert device1["is_shared"] == device_json["is_shared"]
-
-        device2 = response.json()[1]
-
-        assert device2["uuid"]
-        assert device2["name"] == edits_json["name"]
-        assert device2["is_shared"] == edits_json["is_shared"]
+        # Check quantity
+        get = client.get("/devices/", headers=header)
+        assert get.status_code == 200
+        assert len(get.json()) == 2
 
     @pytest.mark.parametrize(
-        "edits_json",
+        "edits",
         [
             (
                 {
@@ -80,28 +77,42 @@ class TestDevice:
                     "is_shared": False,
                 }
             ),
-        ]
+        ],
     )
-    async def test_edit(self, client, auth_header, device, device_json, edits_json):
-        expected_device_json = device_json.copy()
-        expected_device_json.update(edits_json)
+    async def test_edit(self, client, header, device, device_json, edits):
+        # Check existence
+        record_before = await Device.get(uuid=device["uuid"])
 
-        response = client.put("/devices/" + device["uuid"], headers=auth_header, json=edits_json)
-        assert response.status_code == 200
-        response_json = response.json()
+        # Edit
+        put = client.put(f"/devices/{device['uuid']}", headers=header, json=edits)
+        assert put.status_code == 200
 
-        assert response_json["uuid"] == device["uuid"]
-        assert response_json["name"] == expected_device_json["name"]
-        assert response_json["is_shared"] == expected_device_json["is_shared"]
+        # Merge edits
+        edited_json = device_json.copy()
+        edited_json.update(edits)
 
-    async def test_remove(self, client, auth_header, device, device_json):
-        response = client.get("/devices/" + "?uuid=" + device["uuid"], headers=auth_header)
-        assert response.status_code == 200
+        # Check response
+        response = put.json()
+        assert response["uuid"] == device["uuid"]
+        assert response["name"] == edited_json["name"]
+        assert response["is_shared"] == edited_json["is_shared"]
 
-        # Remove request
-        response_delete = client.delete("/devices/" + device["uuid"], headers=auth_header)
-        assert response_delete.status_code == 200
+        # Check difference
+        record_after = await Device.get(uuid=response["uuid"])
+        assert record_before.uuid == record_after.uuid
+        assert record_before.all() != record_after.all()
 
-        # Check user existence after remove
-        response_get_after = client.get("/devices/" + device["uuid"], headers=auth_header)
-        assert response_get_after.status_code == 405
+    async def test_remove(self, client, header, device):
+        # Remove
+        delete = client.delete(f"/devices/{device['uuid']}", headers=header)
+        assert delete.status_code == 200
+
+        # Check response
+        response = delete.json()
+        assert response["uuid"]
+        assert response["name"]
+        assert response["is_shared"]
+
+        # Check existence
+        get_after = client.get(f"/devices/?uuid={device['uuid']}", headers=header)
+        assert get_after.json() == []

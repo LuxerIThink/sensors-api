@@ -4,28 +4,20 @@ import pytest
 @pytest.mark.anyio
 class TestActions:
 
-    @pytest.fixture(scope="function")
-    def header(self):
-        header = {"Content-Type": "application/x-www-form-urlencoded"}
-        return header
-
-    async def test_login(self, client, user, auth_json, header):
-        response = client.post("/actions/token/", data=auth_json, headers=header)
-        assert response.status_code == 200
-
     @pytest.mark.parametrize(
-        "edit_json, status",
+        "edits, status",
         [
+            ({}, 200),
             ({"password": "An0thr$$"}, 422),
             ({"username": "another"}, 404),
         ],
     )
-    async def test_wrong_creditals(
-        self, client, user, auth_json, edit_json, status, header
-    ):
-        # Create new merged auth_json and edit_json
-        new_json = auth_json.copy()
-        new_json.update(edit_json)
-        # Test
-        response = client.post("/actions/token/", data=new_json, headers=header)
-        assert response.status_code == status
+    async def test_auth(self, client, user, auth_json, edits, status):
+        # Merge edits
+        json = auth_json.copy()
+        json.update(edits)
+
+        # Test request
+        header_type = {"Content-Type": "application/x-www-form-urlencoded"}
+        post = client.post("/actions/token/", data=json, headers=header_type)
+        assert post.status_code == status

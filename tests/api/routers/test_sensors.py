@@ -5,34 +5,64 @@ from app.models import Sensor
 @pytest.mark.anyio
 class TestSensors:
 
-    async def test_create(self, client, device, auth_header, sensor_json):
-        # Create new device
-        response = client.post("/sensors/" + device["uuid"], headers=auth_header, json=sensor_json)
-        assert response.status_code == 200
+    async def test_create(self, client, device, header, sensor_json):
+        # Check existence
+        get = client.get("/sensors/", headers=header)
+        assert get.json() == []
 
-        # Check json input with app output
-        response_json = response.json()
-        assert response_json["uuid"]
-        assert response_json["name"] == sensor_json["name"]
-        assert response_json["unit"] == sensor_json["unit"]
+        # Create
+        create = client.post(
+            f"/sensors/{device['uuid']}", headers=header, json=sensor_json
+        )
+        assert create.status_code == 200
 
-        # Check json input with db data
-        db_record = await Sensor.filter(name=sensor_json["name"]).first()
-        assert db_record.name == sensor_json["name"]
-        assert db_record.unit == sensor_json["unit"]
+        # Check response
+        response = create.json()
+        assert response["uuid"]
+        assert response["name"] == sensor_json["name"]
+        assert response["unit"] == sensor_json["unit"]
 
-    async def test_get(self, client, auth_header, sensor, sensor_json):
-        response = client.get("/sensors/" + "?uuid=" + sensor["uuid"], headers=auth_header)
-        assert response.status_code == 200
+        # Check record
+        record = await Sensor.filter(uuid=response["uuid"]).first()
+        assert record.name == sensor_json["name"]
+        assert record.unit == sensor_json["unit"]
 
-        output_data = response.json()[0]
+    async def test_get(self, client, header, sensor, sensor_json):
+        # Get
+        get = client.get(f"/sensors/?uuid={sensor['uuid']}", headers=header)
+        assert get.status_code == 200
 
-        assert output_data["uuid"]
-        assert output_data["name"] == sensor_json["name"]
-        assert output_data["unit"] == sensor_json["unit"]
+        # Check response
+        response = get.json()[0]
+        assert response["uuid"]
+        assert response["name"] == sensor_json["name"]
+        assert response["unit"] == sensor_json["unit"]
 
     @pytest.mark.parametrize(
-        "edits_json",
+        "sensor2_json",
+        [
+            (
+                {
+                    "name": "other_name",
+                    "unit": "other_unit",
+                }
+            ),
+        ],
+    )
+    async def test_multiple_get(self, client, header, device, sensor, sensor2_json):
+        # Add second object
+        create1 = client.post(
+            f"/sensors/{device['uuid']}", headers=header, json=sensor2_json
+        )
+        assert create1.status_code == 200
+
+        # Check quantity
+        response_get = client.get("/sensors/", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    @pytest.mark.parametrize(
+        "edits",
         [
             (
                 {
@@ -51,28 +81,42 @@ class TestSensors:
                     "unit": "other_device",
                 }
             ),
-        ]
+        ],
     )
-    async def test_edit(self, client, auth_header, sensor, sensor_json, edits_json):
-        expected_device_json = sensor_json.copy()
-        expected_device_json.update(edits_json)
+    async def test_edit(self, client, header, sensor, sensor_json, edits):
+        # Check existence
+        record_before = await Sensor.get(uuid=sensor["uuid"])
 
-        response = client.put("/sensors/" + sensor["uuid"], headers=auth_header, json=edits_json)
-        assert response.status_code == 200
-        response_json = response.json()
+        # Edit
+        put = client.put(f"/sensors/{sensor["uuid"]}", headers=header, json=edits)
+        assert put.status_code == 200
 
-        assert response_json["uuid"] == sensor["uuid"]
-        assert response_json["name"] == expected_device_json["name"]
-        assert response_json["unit"] == expected_device_json["unit"]
+        # Merge edits
+        edited_json = sensor_json.copy()
+        edited_json.update(edits)
 
-    async def test_remove(self, client, auth_header, sensor):
-        response = client.get("/sensors/" + "?uuid=" + sensor["uuid"], headers=auth_header)
-        assert response.status_code == 200
+        # Check response
+        response = put.json()
+        assert response["uuid"] == sensor["uuid"]
+        assert response["name"] == edited_json["name"]
+        assert response["unit"] == edited_json["unit"]
 
-        # Remove request
-        response_delete = client.delete("/sensors/" + sensor["uuid"], headers=auth_header)
-        assert response_delete.status_code == 200
+        # Check difference
+        record_after = await Sensor.get(uuid=response["uuid"])
+        assert record_before.uuid == record_after.uuid
+        assert record_before.all() != record_after.all()
 
-        # Check user existence after remove
-        response_get_after = client.get("/sensors/" + sensor["uuid"], headers=auth_header)
-        assert response_get_after.status_code == 405
+    async def test_remove(self, client, header, sensor):
+        # Remove
+        delete = client.delete(f"/sensors/{sensor['uuid']}", headers=header)
+        assert delete.status_code == 200
+
+        # Check response
+        response_put_json = delete.json()
+        assert response_put_json["uuid"]
+        assert response_put_json["name"]
+        assert response_put_json["unit"]
+
+        # Check existence
+        get_after = client.get(f"/sensors/?uuid={sensor['uuid']}", headers=header)
+        assert get_after.json() == []

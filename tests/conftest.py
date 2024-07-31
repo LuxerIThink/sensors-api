@@ -23,7 +23,7 @@ def client():
 
 
 @pytest.fixture(scope="function", autouse=True)
-async def initialize_tests():
+async def init_tests():
     await init_db()
     yield
     await Tortoise._drop_databases()
@@ -57,7 +57,7 @@ def user(client, user_json):
 
 
 @pytest.fixture(scope="function")
-def auth_header(client, user, auth_json, user_json):
+def header(client, user, auth_json, user_json):
     header = {"Content-Type": "application/x-www-form-urlencoded"}
     response = client.post("/actions/token/", data=auth_json, headers=header)
     data = response.json()
@@ -75,8 +75,8 @@ def device_json():
 
 
 @pytest.fixture(scope="function")
-def device(client, auth_header, device_json):
-    response = client.post("/devices/", headers=auth_header, json=device_json)
+def device(client, header, device_json):
+    response = client.post("/devices/", headers=header, json=device_json)
     return response.json()
 
 
@@ -89,9 +89,12 @@ def sensor_json():
 
 
 @pytest.fixture(scope="function")
-def sensor(client, auth_header, device, sensor_json):
-    response = client.post("/sensors/" + device["uuid"], headers=auth_header, json=sensor_json)
+def sensor(client, header, device, sensor_json):
+    response = client.post(
+        "/sensors/" + device["uuid"], headers=header, json=sensor_json
+    )
     return response.json()
+
 
 @pytest.fixture(scope="session")
 def measurement_json():
@@ -100,8 +103,10 @@ def measurement_json():
         "value": 5.0,
     }
 
-@pytest.fixture(scope="function")
-def measurement(client, auth_header, sensor, measurement_json):
-    response = client.post("/measurements/" + sensor["uuid"], headers=auth_header, json=measurement_json)
-    return response.json()
 
+@pytest.fixture(scope="function")
+def measurement(client, header, sensor, measurement_json):
+    response = client.post(
+        "/measurements/" + sensor["uuid"], headers=header, json=measurement_json
+    )
+    return response.json()
