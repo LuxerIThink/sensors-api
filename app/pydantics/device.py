@@ -13,7 +13,7 @@ DeviceInPydanticAllOptional = pydantic_model_creator(
     name="DeviceInOptional",
     exclude_readonly=True,
     exclude=("uuid", "user_id"),
-    optional=("name", "is_shared")
+    optional=("name", "is_shared"),
 )
 
 DeviceOutPydantic = pydantic_model_creator(
@@ -27,5 +27,3 @@ DevicesOutPydantic = pydantic_queryset_creator(
     name="DevicesOut",
     exclude=("sensors", "user", "user_id"),
 )
-
-

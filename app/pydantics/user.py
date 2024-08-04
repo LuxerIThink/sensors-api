@@ -13,12 +13,10 @@ UserInPydanticAllOptional = pydantic_model_creator(
     User,
     name="UserInEdit",
     exclude_readonly=True,
-    optional=("username", "password", "email")
+    optional=("username", "password", "email"),
 )
 
 
 UserOutPydantic = pydantic_model_creator(
-    User,
-    name="UserOut",
-    exclude=("password", "devices")
+    User, name="UserOut", exclude=("password", "devices")
 )

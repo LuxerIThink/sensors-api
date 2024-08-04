@@ -5,7 +5,7 @@ MeasurementInPydantic = pydantic_model_creator(
     Measurement,
     name="MeasurementIn",
     exclude_readonly=True,
-    exclude=("uuid", "sensor_id")
+    exclude=("uuid", "sensor_id"),
 )
 
 MeasurementInPydanticAllOptional = pydantic_model_creator(
@@ -13,7 +13,7 @@ MeasurementInPydanticAllOptional = pydantic_model_creator(
     name="MeasurementInOptional",
     exclude_readonly=True,
     exclude=("uuid", "sensor_id"),
-    optional=("time", "value")
+    optional=("time", "value"),
 )
 
 MeasurementOutPydantic = pydantic_model_creator(
