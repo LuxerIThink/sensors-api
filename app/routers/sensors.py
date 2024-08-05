@@ -21,7 +21,7 @@ async def get_sensor(
     user_id: Annotated[dict, Depends(authorize)], device_uuid: str = "", uuid: str = ""
 ):
     return await Sensor.filter(
-        uuid__contains=uuid, device_id__contains=device_uuid, device__user_id=user_id
+        uuid__contains=uuid, device_id__contains=device_uuid, user_id=user_id
     )
 
 
@@ -32,7 +32,7 @@ async def create_sensor(
     sensor: SensorInPydantic,
 ):
     return await Sensor.create(
-        **sensor.model_dump(), device_id=device_uuid, device__user_id=user_id
+        **sensor.model_dump(), device_id=device_uuid, user_id=user_id
     )
 
 

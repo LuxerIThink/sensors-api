@@ -5,25 +5,25 @@ MeasurementInPydantic = pydantic_model_creator(
     Measurement,
     name="MeasurementIn",
     exclude_readonly=True,
-    exclude=("uuid", "sensor_id"),
+    exclude=("uuid", "sensor_id", "user", "user_id"),
 )
 
 MeasurementInPydanticAllOptional = pydantic_model_creator(
     Measurement,
     name="MeasurementInOptional",
     exclude_readonly=True,
-    exclude=("uuid", "sensor_id"),
+    exclude=("uuid", "sensor_id", "user", "user_id"),
     optional=("time", "value"),
 )
 
 MeasurementOutPydantic = pydantic_model_creator(
     Measurement,
     name="MeasurementOut",
-    exclude=("sensor", "sensor_id"),
+    exclude=("sensor", "sensor_id", "user", "user_id"),
 )
 
 MeasurementsOutPydantic = pydantic_queryset_creator(
     Measurement,
     name="MeasurementsOut",
-    exclude=("sensor", "sensor_id"),
+    exclude=("sensor", "sensor_id", "user", "user_id"),
 )

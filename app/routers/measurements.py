@@ -24,7 +24,7 @@ async def get_measurement(
     return await Measurement.filter(
         uuid__contains=uuid,
         sensor_id__contains=sensor_uuid,
-        sensor__device__user_id=user_id,
+        user_id=user_id,
     )
 
 
@@ -37,7 +37,7 @@ async def create_measurement(
     return await Measurement.create(
         **measurement.model_dump(),
         sensor_id=sensor_uuid,
-        sensor__device__user_id=user_id
+        user_id=user_id
     )
 
 
