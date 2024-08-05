@@ -43,7 +43,7 @@ async def edit_sensor(
     sensor_in: SensorInPydanticAllOptional,
 ):
     async with in_transaction():
-        sensor = await Sensor.get(uuid=uuid, device__user_id=user_id)
+        sensor = await Sensor.get(uuid=uuid, user_id=user_id)
         sensor_dict = sensor_in.model_dump(exclude_none=True, exclude_unset=True)
         await sensor.update_from_dict(sensor_dict).save(
             update_fields=sensor_dict.keys()
@@ -54,6 +54,6 @@ async def edit_sensor(
 @router.delete("/{uuid}", response_model=SensorOutPydantic)
 async def remove_sensor(user_id: Annotated[dict, Depends(authorize)], uuid: str):
     async with in_transaction():
-        sensor = await Sensor.get(uuid=uuid, device__user_id=user_id)
+        sensor = await Sensor.get(uuid=uuid, user_id=user_id)
         await sensor.delete()
     return sensor

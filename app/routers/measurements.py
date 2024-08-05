@@ -48,7 +48,7 @@ async def edit_measurement(
     measurement_in: MeasurementInPydanticAllOptional,
 ):
     async with in_transaction():
-        measurement = await Measurement.get(uuid=uuid, sensor__device__user_id=user_id)
+        measurement = await Measurement.get(uuid=uuid, user_id=user_id)
         measurement_dict = measurement_in.model_dump(
             exclude_none=True, exclude_unset=True
         )
@@ -61,6 +61,6 @@ async def edit_measurement(
 @router.delete("/{uuid}", response_model=MeasurementOutPydantic)
 async def remove_measurement(user_id: Annotated[dict, Depends(authorize)], uuid: str):
     async with in_transaction():
-        measurement = await Measurement.get(uuid=uuid, sensor__device__user_id=user_id)
+        measurement = await Measurement.get(uuid=uuid, user_id=user_id)
         await measurement.delete()
     return measurement
