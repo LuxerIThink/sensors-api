@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from app.internal.authentication import authorize
@@ -19,13 +20,25 @@ router = APIRouter(
 
 @router.get("/", response_model=MeasurementsOutPydantic)
 async def get_measurement(
-    user_id: Annotated[dict, Depends(authorize)], sensor_uuid: str = "", uuid: str = ""
+    user_id: Annotated[dict, Depends(authorize)],
+    sensor_uuid: str = "",
+    uuid: str = "",
+    start_time: datetime | None = None,
+    finish_time: datetime | None = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
 ):
-    return await Measurement.filter(
-        uuid__contains=uuid,
-        sensor_id__contains=sensor_uuid,
-        user_id=user_id,
-    )
+    parameters = {
+        "user_id": user_id,
+        "uuid": uuid,
+        "sensor_id__contains": sensor_uuid,
+        "time__gte": start_time,
+        "time__lte": finish_time,
+        "value__gte": min_value,
+        "value__lte": max_value,
+    }
+    filtered_parameters = {key: value for key, value in parameters.items() if value}
+    return await Measurement.filter(**filtered_parameters)
 
 
 @router.post("/{sensor_uuid}", response_model=MeasurementOutPydantic)
@@ -35,9 +48,7 @@ async def create_measurement(
     measurement: MeasurementInPydantic,
 ):
     return await Measurement.create(
-        **measurement.model_dump(),
-        sensor_id=sensor_uuid,
-        user_id=user_id
+        **measurement.model_dump(), sensor_id=sensor_uuid, user_id=user_id
     )
 
 

@@ -18,11 +18,20 @@ router = APIRouter(
 
 @router.get("/", response_model=SensorsOutPydantic)
 async def get_sensor(
-    user_id: Annotated[dict, Depends(authorize)], device_uuid: str = "", uuid: str = ""
+    user_id: Annotated[dict, Depends(authorize)],
+    device_uuid: str = "",
+    uuid: str = "",
+    name: str = "",
+    unit: str = "",
 ):
-    return await Sensor.filter(
-        uuid__contains=uuid, device_id__contains=device_uuid, user_id=user_id
-    )
+    parameters = {
+        "uuid__contains": uuid,
+        "device_id__contains": device_uuid,
+        "user_id": user_id,
+        "name__contains": name,
+        "unit__contains": unit,
+    }
+    return await Sensor.filter(**parameters)
 
 
 @router.post("/{device_uuid}", response_model=SensorOutPydantic)

@@ -39,31 +39,6 @@ class TestMeasurement:
         assert response_get_json["value"] == measurement_json["value"]
 
     @pytest.mark.parametrize(
-        "measurement2_json",
-        [
-            (
-                {
-                    "time": "1999-01-01T00:00:00Z",
-                    "value": -15,
-                }
-            ),
-        ],
-    )
-    async def test_multiple_get(
-        self, client, header, sensor, measurement, measurement2_json
-    ):
-        # Add second object
-        create2 = client.post(
-            f"/measurements/{sensor['uuid']}", headers=header, json=measurement2_json
-        )
-        assert create2.status_code == 200
-
-        # Check record quantity
-        response_get = client.get("/measurements/", headers=header)
-        assert response_get.status_code == 200
-        assert len(response_get.json()) == 2
-
-    @pytest.mark.parametrize(
         "edits",
         [
             (
@@ -126,3 +101,201 @@ class TestMeasurement:
             f"/measurements/?uuid={measurement['uuid']}", headers=header
         )
         assert get_after.json() == []
+
+    async def test_get_all(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get("/measurements/", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 3
+
+    async def test_get_above_time(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(
+            "/measurements/?start_time=1999-01-01T00%3A00%3A00Z", headers=header
+        )
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    async def test_get_below_time(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(
+            "/measurements/?finish_time=1999-01-01T00%3A00%3A00Z", headers=header
+        )
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    async def test_get_between_time(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(
+            "/measurements/?start_time=1998-12-31T23%3A59%3A59.999Z&finish_time=1999-01-01T00%3A00%3A00Z",
+            headers=header,
+        )
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    async def test_get_above_value(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get("/measurements/?min_value=4.9", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    async def test_get_below_value(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get("/measurements/?max_value=5", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    async def test_get_between_values(self, client, header, sensor):
+        # Preparations
+        measurements_json = [
+            {
+                "time": "2024-07-30T14:48:00Z",
+                "value": 5.0,
+            },
+            {
+                "time": "1998-12-31T23:59:59.999Z",
+                "value": 10,
+            },
+            {
+                "time": "1999-01-01T00:00:00Z",
+                "value": -15,
+            },
+        ]
+        for measurement_json in measurements_json:
+            create = client.post(
+                f"/measurements/{sensor['uuid']}", headers=header, json=measurement_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(
+            "/measurements/?min_value=4.9&max_value=5", headers=header
+        )
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 1

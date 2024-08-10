@@ -17,9 +17,20 @@ router = APIRouter(
 
 
 @router.get("/", response_model=DevicesOutPydantic)
-async def get_device(user_id: Annotated[dict, Depends(authorize)], uuid: str = ""):
-    devices = await Device.filter(uuid__contains=uuid, user_id=user_id)
-    return devices
+async def get_device(
+    user_id: Annotated[dict, Depends(authorize)],
+    uuid: str = "",
+    name: str = "",
+    is_shared: bool | None = None,
+):
+    parameters = {
+        "uuid__contains": uuid,
+        "user_id": user_id,
+        "name__contains": name,
+        "is_shared": is_shared,
+    }
+    filtered_parameters = {key: value for key, value in parameters.items() if value}
+    return await Device.filter(**filtered_parameters)
 
 
 @router.post("/", response_model=DeviceOutPydantic)

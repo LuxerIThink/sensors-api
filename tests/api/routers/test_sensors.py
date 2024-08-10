@@ -39,29 +39,6 @@ class TestSensors:
         assert response["unit"] == sensor_json["unit"]
 
     @pytest.mark.parametrize(
-        "sensor2_json",
-        [
-            (
-                {
-                    "name": "other_name",
-                    "unit": "other_unit",
-                }
-            ),
-        ],
-    )
-    async def test_multiple_get(self, client, header, device, sensor, sensor2_json):
-        # Add second object
-        create1 = client.post(
-            f"/sensors/{device['uuid']}", headers=header, json=sensor2_json
-        )
-        assert create1.status_code == 200
-
-        # Check quantity
-        response_get = client.get("/sensors/", headers=header)
-        assert response_get.status_code == 200
-        assert len(response_get.json()) == 2
-
-    @pytest.mark.parametrize(
         "edits",
         [
             (
@@ -120,3 +97,142 @@ class TestSensors:
         # Check existence
         get_after = client.get(f"/sensors/?uuid={sensor['uuid']}", headers=header)
         assert get_after.json() == []
+
+    async def test_get_all(self, client, header, device):
+        # Preparations
+        sensors_json = [
+            {
+                "name": "test_sensor",
+                "unit": "test_unit",
+            },
+            {
+                "name": "other_sensor",
+                "unit": "other_unit",
+            },
+            {
+                "name": "other_name",
+                "unit": "m",
+            },
+        ]
+        for sensor_json in sensors_json:
+            create = client.post(
+                f"/sensors/{device['uuid']}", headers=header, json=sensor_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get("/sensors/", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 3
+
+    async def test_get_by_name(self, client, header, device):
+        # Preparations
+        sensors_json = [
+            {
+                "name": "test_sensor",
+                "unit": "test_unit",
+            },
+            {
+                "name": "other_sensor",
+                "unit": "other_unit",
+            },
+            {
+                "name": "other_name",
+                "unit": "m",
+            },
+        ]
+        for sensor_json in sensors_json:
+            create = client.post(
+                f"/sensors/{device['uuid']}", headers=header, json=sensor_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(
+            f"/sensors/?name={sensors_json[0]['name']}", headers=header
+        )
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 1
+
+    async def test_get_by_name_partially(self, client, header, device):
+        # Preparations
+        sensors_json = [
+            {
+                "name": "test_sensor",
+                "unit": "test_unit",
+            },
+            {
+                "name": "other_sensor",
+                "unit": "other_unit",
+            },
+            {
+                "name": "other_name",
+                "unit": "m",
+            },
+        ]
+        for sensor_json in sensors_json:
+            create = client.post(
+                f"/sensors/{device['uuid']}", headers=header, json=sensor_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(f"/sensors/?name=sensor", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2
+
+    async def test_get_by_unit(self, client, header, device):
+        # Preparations
+        sensors_json = [
+            {
+                "name": "test_sensor",
+                "unit": "test_unit",
+            },
+            {
+                "name": "other_sensor",
+                "unit": "other_unit",
+            },
+            {
+                "name": "other_name",
+                "unit": "m",
+            },
+        ]
+        for sensor_json in sensors_json:
+            create = client.post(
+                f"/sensors/{device['uuid']}", headers=header, json=sensor_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(
+            f"/sensors/?unit={sensors_json[0]['unit']}", headers=header
+        )
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 1
+
+    async def test_get_by_unit_partially(self, client, header, device):
+        # Preparations
+        sensors_json = [
+            {
+                "name": "test_sensor",
+                "unit": "test_unit",
+            },
+            {
+                "name": "other_sensor",
+                "unit": "other_unit",
+            },
+            {
+                "name": "other_name",
+                "unit": "m",
+            },
+        ]
+        for sensor_json in sensors_json:
+            create = client.post(
+                f"/sensors/{device['uuid']}", headers=header, json=sensor_json
+            )
+            assert create.status_code == 200
+
+        # Check quantity
+        response_get = client.get(f"/sensors/?unit=unit", headers=header)
+        assert response_get.status_code == 200
+        assert len(response_get.json()) == 2

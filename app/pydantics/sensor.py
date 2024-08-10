@@ -2,7 +2,10 @@ from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_
 from app.models import Sensor
 
 SensorInPydantic = pydantic_model_creator(
-    Sensor, name="SensorIn", exclude_readonly=True, exclude=("uuid", "device_id", "user", "user_id")
+    Sensor,
+    name="SensorIn",
+    exclude_readonly=True,
+    exclude=("uuid", "device_id", "user", "user_id"),
 )
 
 SensorInPydanticAllOptional = pydantic_model_creator(

@@ -37,27 +37,6 @@ class TestDevice:
         assert response["is_shared"] == device_json["is_shared"]
 
     @pytest.mark.parametrize(
-        "device2_json",
-        [
-            (
-                {
-                    "name": "other_name",
-                    "is_shared": False,
-                }
-            ),
-        ],
-    )
-    async def test_multiple_get(self, client, header, device, device2_json):
-        # Add second record
-        create2 = client.post("/devices/", headers=header, json=device2_json)
-        assert create2.status_code == 200
-
-        # Check quantity
-        get = client.get("/devices/", headers=header)
-        assert get.status_code == 200
-        assert len(get.json()) == 2
-
-    @pytest.mark.parametrize(
         "edits",
         [
             (
@@ -116,3 +95,103 @@ class TestDevice:
         # Check existence
         get_after = client.get(f"/devices/?uuid={device['uuid']}", headers=header)
         assert get_after.json() == []
+
+    async def test_get_all(self, client, header):
+        # Preparations
+        devices_json = [
+            {
+                "name": "test_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_name",
+                "is_shared": False,
+            },
+        ]
+        for device_json in devices_json:
+            create = client.post("/devices/", headers=header, json=device_json)
+            assert create.status_code == 200
+
+        # Check quantity
+        get = client.get("/devices/", headers=header)
+        assert get.status_code == 200
+        assert len(get.json()) == 3
+
+    async def test_get_by_name(self, client, header):
+        # Preparations
+        devices_json = [
+            {
+                "name": "test_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_name",
+                "is_shared": False,
+            },
+        ]
+        for device_json in devices_json:
+            create = client.post("/devices/", headers=header, json=device_json)
+            assert create.status_code == 200
+
+        # Check quantity
+        get = client.get(f"/devices/?name={devices_json[0]['name']}", headers=header)
+        assert get.status_code == 200
+        assert len(get.json()) == 1
+
+    async def test_get_by_name_partially(self, client, header):
+        # Preparations
+        devices_json = [
+            {
+                "name": "test_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_name",
+                "is_shared": False,
+            },
+        ]
+        for device_json in devices_json:
+            create = client.post("/devices/", headers=header, json=device_json)
+            assert create.status_code == 200
+
+        # Check quantity
+        get = client.get(f"/devices/?name=device", headers=header)
+        assert get.status_code == 200
+        assert len(get.json()) == 2
+
+    async def test_get_by_is_shared(self, client, header):
+        # Preparations
+        devices_json = [
+            {
+                "name": "test_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_device",
+                "is_shared": True,
+            },
+            {
+                "name": "other_name",
+                "is_shared": False,
+            },
+        ]
+        for device_json in devices_json:
+            create = client.post("/devices/", headers=header, json=device_json)
+            assert create.status_code == 200
+
+        # Check quantity
+        get = client.get(f"/devices/?is_shared=True", headers=header)
+        assert get.status_code == 200
+        assert len(get.json()) == 2
