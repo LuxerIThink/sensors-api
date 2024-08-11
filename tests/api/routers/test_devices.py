@@ -45,7 +45,40 @@ class TestDevice:
                     "is_shared": False,
                 }
             ),
-            # Check partially change
+        ],
+    )
+    async def test_edit(self, client, header, device, device_json, edits):
+        # Check existence
+        record_before = await Device.get(uuid=device["uuid"])
+
+        # Edit
+        edit = client.put(f"/devices/{device['uuid']}", headers=header, json=edits)
+        assert edit.status_code == 200
+
+        # Merge edits
+        edited_json = device_json.copy()
+        edited_json.update(edits)
+
+        # Check response
+        response = edit.json()
+        assert response["uuid"] == device["uuid"]
+        assert response["name"] == edited_json["name"]
+        assert response["is_shared"] == edited_json["is_shared"]
+
+        # Check difference
+        record_after = await Device.get(uuid=response["uuid"])
+        assert record_before.uuid == record_after.uuid
+        assert record_before.all() != record_after.all()
+
+    @pytest.mark.parametrize(
+        "edits",
+        [
+            (
+                {
+                    "name": "other_name",
+                    "is_shared": False,
+                }
+            ),
             (
                 {
                     "name": "other",
@@ -58,20 +91,22 @@ class TestDevice:
             ),
         ],
     )
-    async def test_edit(self, client, header, device, device_json, edits):
+    async def test_edit_partially(self, client, header, device, device_json, edits):
         # Check existence
         record_before = await Device.get(uuid=device["uuid"])
 
         # Edit
-        put = client.put(f"/devices/{device['uuid']}", headers=header, json=edits)
-        assert put.status_code == 200
+        edit_partially = client.patch(
+            f"/devices/{device['uuid']}", headers=header, json=edits
+        )
+        assert edit_partially.status_code == 200
 
         # Merge edits
         edited_json = device_json.copy()
         edited_json.update(edits)
 
         # Check response
-        response = put.json()
+        response = edit_partially.json()
         assert response["uuid"] == device["uuid"]
         assert response["name"] == edited_json["name"]
         assert response["is_shared"] == edited_json["is_shared"]

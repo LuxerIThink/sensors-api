@@ -52,7 +52,57 @@ class TestUser:
                     "email": "other_mail@mail.com",
                 }
             ),
-            # Check partially change
+        ],
+    )
+    async def test_edit(self, client, header, user, user_json, edits):
+        # Check existence
+        record_before = await User.get(uuid=user["uuid"])
+
+        # Edit
+        edit = client.put("/users/", headers=header, json=edits)
+        assert edit.status_code == 200
+
+        # Merge edits
+        edited_json = user_json.copy()
+        edited_json.update(edits)
+
+        # Check response
+        response = edit.json()
+        assert response["uuid"] == user["uuid"]
+        assert response["username"] == edited_json["username"]
+        assert "password" not in response
+        assert response["email"] == edited_json["email"].lower()
+
+        # Check difference
+        record_after = await User.get(uuid=response["uuid"])
+        assert record_before.uuid == record_after.uuid
+        assert record_before.all() != record_after.all()
+
+        # Check record
+        assert record_after.password != edited_json["password"]
+        password_hasher = PasswordHasher()
+        assert (
+            password_hasher.verify(record_after.password, edited_json["password"])
+            is True
+        )
+        assert record_after.email == edited_json["email"].lower()
+
+    @pytest.mark.parametrize(
+        "edits",
+        [
+            (
+                {
+                    "username": "other_name",
+                    "password": "N0th1ng!",
+                    "email": "other_mail@mail.com",
+                }
+            ),
+            (
+                {
+                    "username": "other_username",
+                    "password": "0th3rP4$$",
+                }
+            ),
             (
                 {
                     "username": "other_username",
@@ -70,20 +120,20 @@ class TestUser:
             ),
         ],
     )
-    async def test_edit(self, client, header, user, user_json, edits):
+    async def test_edit_partially(self, client, header, user, user_json, edits):
         # Check existence
         record_before = await User.get(uuid=user["uuid"])
 
         # Edit
-        put = client.put("/users/", headers=header, json=edits)
-        assert put.status_code == 200
+        edit_partially = client.patch("/users/", headers=header, json=edits)
+        assert edit_partially.status_code == 200
 
         # Merge edits
         edited_json = user_json.copy()
         edited_json.update(edits)
 
         # Check response
-        response = put.json()
+        response = edit_partially.json()
         assert response["uuid"] == user["uuid"]
         assert response["username"] == edited_json["username"]
         assert "password" not in response
@@ -183,6 +233,15 @@ class TestUser:
         ],
     )
     async def test_validators(self, client, header, user_json, edits, keys):
+        # Edit partially
+        patch = client.patch("/users/", headers=header, json=edits)
+        assert patch.status_code == 422
+        assert all(key in str(patch.json()) for key in keys)
+
+        # Edit to default
+        edit_to_default = client.put("/users/", headers=header, json=user_json)
+        assert edit_to_default.status_code == 200
+
         # Merge edits
         edited_json = user_json.copy()
         edited_json.update(edits)

@@ -47,7 +47,42 @@ class TestMeasurement:
                     "value": 1.0,
                 }
             ),
-            # Check partially change
+        ],
+    )
+    async def test_edit(self, client, header, measurement, measurement_json, edits):
+        # Check existence
+        record_before = await Measurement.get(uuid=measurement["uuid"])
+
+        # Edit
+        edit = client.put(
+            f"/measurements/{measurement['uuid']}", headers=header, json=edits
+        )
+        assert edit.status_code == 200
+
+        # Merge edits
+        edited_json = measurement_json.copy()
+        edited_json.update(edits)
+
+        # Check response
+        response = edit.json()
+        assert response["uuid"] == measurement["uuid"]
+        assert response["time"] == edited_json["time"]
+        assert response["value"] == edited_json["value"]
+
+        # Check difference
+        record_after = await Measurement.get(uuid=response["uuid"])
+        assert record_before.uuid == record_after.uuid
+        assert record_before.all() != record_after.all()
+
+    @pytest.mark.parametrize(
+        "edits",
+        [
+            (
+                {
+                    "time": "2020-07-30T14:48:00Z",
+                    "value": 1.0,
+                }
+            ),
             (
                 {
                     "time": "2019-05-30T10:42:00Z",
@@ -60,22 +95,24 @@ class TestMeasurement:
             ),
         ],
     )
-    async def test_edit(self, client, header, measurement, measurement_json, edits):
+    async def test_edit_partially(
+        self, client, header, measurement, measurement_json, edits
+    ):
         # Check existence
         record_before = await Measurement.get(uuid=measurement["uuid"])
 
         # Edit
-        put = client.put(
+        edit_partially = client.patch(
             f"/measurements/{measurement['uuid']}", headers=header, json=edits
         )
-        assert put.status_code == 200
+        assert edit_partially.status_code == 200
 
         # Merge edits
         edited_json = measurement_json.copy()
         edited_json.update(edits)
 
         # Check response
-        response = put.json()
+        response = edit_partially.json()
         assert response["uuid"] == measurement["uuid"]
         assert response["time"] == edited_json["time"]
         assert response["value"] == edited_json["value"]

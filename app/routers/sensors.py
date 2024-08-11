@@ -49,6 +49,21 @@ async def create_sensor(
 async def edit_sensor(
     user_id: Annotated[dict, Depends(authorize)],
     uuid: str,
+    sensor_in: SensorInPydantic,
+):
+    async with in_transaction():
+        sensor = await Sensor.get(uuid=uuid, user_id=user_id)
+        sensor_dict = sensor_in.model_dump(exclude_none=True, exclude_unset=True)
+        await sensor.update_from_dict(sensor_dict).save(
+            update_fields=sensor_dict.keys()
+        )
+    return sensor
+
+
+@router.patch("/{uuid}", response_model=SensorOutPydantic)
+async def edit_partially_sensor(
+    user_id: Annotated[dict, Depends(authorize)],
+    uuid: str,
     sensor_in: SensorInPydanticAllOptional,
 ):
     async with in_transaction():

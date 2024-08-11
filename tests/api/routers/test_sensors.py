@@ -47,7 +47,40 @@ class TestSensors:
                     "unit": "other_device",
                 }
             ),
-            # Check partially change
+        ],
+    )
+    async def test_edit(self, client, header, sensor, sensor_json, edits):
+        # Check existence
+        record_before = await Sensor.get(uuid=sensor["uuid"])
+
+        # Edit
+        edit = client.put(f"/sensors/{sensor["uuid"]}", headers=header, json=edits)
+        assert edit.status_code == 200
+
+        # Merge edits
+        edited_json = sensor_json.copy()
+        edited_json.update(edits)
+
+        # Check response
+        response = edit.json()
+        assert response["uuid"] == sensor["uuid"]
+        assert response["name"] == edited_json["name"]
+        assert response["unit"] == edited_json["unit"]
+
+        # Check difference
+        record_after = await Sensor.get(uuid=response["uuid"])
+        assert record_before.uuid == record_after.uuid
+        assert record_before.all() != record_after.all()
+
+    @pytest.mark.parametrize(
+        "edits",
+        [
+            (
+                {
+                    "name": "other_name",
+                    "unit": "other_device",
+                }
+            ),
             (
                 {
                     "name": "other",
@@ -60,7 +93,7 @@ class TestSensors:
             ),
         ],
     )
-    async def test_edit(self, client, header, sensor, sensor_json, edits):
+    async def test_edit_partially(self, client, header, sensor, sensor_json, edits):
         # Check existence
         record_before = await Sensor.get(uuid=sensor["uuid"])
 

@@ -44,6 +44,21 @@ async def create_device(
 async def edit_device(
     user_id: Annotated[dict, Depends(authorize)],
     uuid: str,
+    device_in: DeviceInPydantic,
+):
+    async with in_transaction():
+        device = await Device.get(uuid=uuid, user_id=user_id)
+        device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
+        await device.update_from_dict(device_dict).save(
+            update_fields=device_dict.keys()
+        )
+    return device
+
+
+@router.patch("/{uuid}", response_model=DeviceOutPydantic)
+async def edit_partially_device(
+    user_id: Annotated[dict, Depends(authorize)],
+    uuid: str,
     device_in: DeviceInPydanticAllOptional,
 ):
     async with in_transaction():

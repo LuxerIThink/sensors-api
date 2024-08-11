@@ -56,6 +56,23 @@ async def create_measurement(
 async def edit_measurement(
     user_id: Annotated[dict, Depends(authorize)],
     uuid: str,
+    measurement_in: MeasurementInPydantic,
+):
+    async with in_transaction():
+        measurement = await Measurement.get(uuid=uuid, user_id=user_id)
+        measurement_dict = measurement_in.model_dump(
+            exclude_none=True, exclude_unset=True
+        )
+        await measurement.update_from_dict(measurement_dict).save(
+            update_fields=measurement_dict.keys()
+        )
+    return measurement
+
+
+@router.patch("/{uuid}", response_model=MeasurementOutPydantic)
+async def edit_measurement(
+    user_id: Annotated[dict, Depends(authorize)],
+    uuid: str,
     measurement_in: MeasurementInPydanticAllOptional,
 ):
     async with in_transaction():
