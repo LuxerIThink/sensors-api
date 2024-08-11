@@ -12,11 +12,11 @@ class TestUser:
         assert get.status_code == 401
 
         # Create
-        post = client.post("/users/", json=user_json)
-        assert post.status_code == 200
+        create = client.post("/users/", json=user_json)
+        assert create.status_code == 200
 
         # Check response
-        response = post.json()
+        response = create.json()
         assert response["uuid"]
         assert response["username"] == user_json["username"]
         assert "password" not in response
@@ -188,9 +188,9 @@ class TestUser:
         edited_json.update(edits)
 
         # Try to edit
-        put = client.put("/users/", headers=header, json=edited_json)
-        assert put.status_code == 422
-        assert all(key in str(put.json()) for key in keys)
+        edit = client.put("/users/", headers=header, json=edited_json)
+        assert edit.status_code == 422
+        assert all(key in str(edit.json()) for key in keys)
 
         # Remove
         delete = client.delete("/users/", headers=header)
@@ -235,9 +235,9 @@ class TestUser:
         edited_json.update(edits)
 
         # Try to create again
-        post_same = client.post("/users/", json=edited_json)
-        assert post_same.status_code == 422
-        assert [key in str(post_same.json()) for key in keys]
+        create_same = client.post("/users/", json=edited_json)
+        assert create_same.status_code == 422
+        assert [key in str(create_same.json()) for key in keys]
 
     @pytest.mark.parametrize(
         "edits",
@@ -250,8 +250,8 @@ class TestUser:
         ],
     )
     async def test_edit_uuid(self, client, header, user_json, edits):
-        put = client.put("/users/", headers=header, json=edits)
-        assert put.status_code == 422
+        edit = client.put("/users/", headers=header, json=edits)
+        assert edit.status_code == 422
 
     @pytest.mark.parametrize(
         "header, keys",

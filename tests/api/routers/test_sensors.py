@@ -65,15 +65,15 @@ class TestSensors:
         record_before = await Sensor.get(uuid=sensor["uuid"])
 
         # Edit
-        put = client.put(f"/sensors/{sensor["uuid"]}", headers=header, json=edits)
-        assert put.status_code == 200
+        edit = client.patch(f"/sensors/{sensor["uuid"]}", headers=header, json=edits)
+        assert edit.status_code == 200
 
         # Merge edits
         edited_json = sensor_json.copy()
         edited_json.update(edits)
 
         # Check response
-        response = put.json()
+        response = edit.json()
         assert response["uuid"] == sensor["uuid"]
         assert response["name"] == edited_json["name"]
         assert response["unit"] == edited_json["unit"]
