@@ -36,7 +36,7 @@ class TestUser:
         assert get.status_code == 200
 
         # Check response
-        response = get.json()
+        response = get.json()[0]
         assert response["uuid"]
         assert response["username"] == user_json["username"]
         assert "password" not in user_json["password"]
@@ -167,7 +167,7 @@ class TestUser:
 
         # Check existence
         get_after = client.get("/users/", headers=header)
-        assert get_after.status_code == 404
+        assert get_after.json() == []
 
     @pytest.mark.parametrize(
         "edits, keys",

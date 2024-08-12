@@ -1,4 +1,4 @@
-from tortoise.contrib.pydantic import pydantic_model_creator
+from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
 from app.models import User
 
@@ -18,5 +18,9 @@ UserInPydanticAllOptional = pydantic_model_creator(
 
 
 UserOutPydantic = pydantic_model_creator(
+    User, name="UserOut", exclude=("password", "devices", "sensors", "measurements")
+)
+
+UsersOutPydantic = pydantic_queryset_creator(
     User, name="UserOut", exclude=("password", "devices", "sensors", "measurements")
 )
