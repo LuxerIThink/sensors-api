@@ -29,16 +29,15 @@ async def get_measurement(
     max_value: float | None = None,
 ):
     parameters = {
-        "user_id": user_id,
         "uuid": uuid,
-        "sensor_id__contains": sensor_uuid,
+        "sensor_id": sensor_uuid,
         "time__gte": start_time,
         "time__lte": finish_time,
         "value__gte": min_value,
         "value__lte": max_value,
     }
     filtered_parameters = {key: value for key, value in parameters.items() if value}
-    return await Measurement.filter(**filtered_parameters)
+    return await Measurement.filter(user_id=user_id, **filtered_parameters)
 
 
 @router.post("/{sensor_uuid}", response_model=MeasurementOutPydantic)

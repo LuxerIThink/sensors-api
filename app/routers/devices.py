@@ -24,13 +24,12 @@ async def get_device(
     is_shared: bool | None = None,
 ):
     parameters = {
-        "uuid__contains": uuid,
-        "user_id": user_id,
+        "uuid": uuid,
         "name__contains": name,
         "is_shared": is_shared,
     }
     filtered_parameters = {key: value for key, value in parameters.items() if value}
-    return await Device.filter(**filtered_parameters)
+    return await Device.filter(user_id=user_id, **filtered_parameters)
 
 
 @router.post("/", response_model=DeviceOutPydantic)

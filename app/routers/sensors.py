@@ -25,13 +25,13 @@ async def get_sensor(
     unit: str = "",
 ):
     parameters = {
-        "uuid__contains": uuid,
-        "device_id__contains": device_uuid,
-        "user_id": user_id,
+        "uuid": uuid,
+        "device_id": device_uuid,
         "name__contains": name,
         "unit__contains": unit,
     }
-    return await Sensor.filter(**parameters)
+    filtered_parameters = {key: value for key, value in parameters.items() if value}
+    return await Sensor.filter(user_id=user_id, **filtered_parameters)
 
 
 @router.post("/{device_uuid}", response_model=SensorOutPydantic)
