@@ -45,13 +45,13 @@ async def edit_device(
     uuid: str,
     device_in: DeviceInPydantic,
 ):
+    device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
     async with in_transaction():
         device = await Device.get(uuid=uuid, user_id=user_id)
-        device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
         await device.update_from_dict(device_dict).save(
             update_fields=device_dict.keys()
         )
-    return device
+        return device
 
 
 @router.patch("/{uuid}", response_model=DeviceOutPydantic)
@@ -60,13 +60,13 @@ async def edit_partially_device(
     uuid: str,
     device_in: DeviceInPydanticAllOptional,
 ):
+    device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
     async with in_transaction():
         device = await Device.get(uuid=uuid, user_id=user_id)
-        device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
         await device.update_from_dict(device_dict).save(
             update_fields=device_dict.keys()
         )
-    return device
+        return device
 
 
 @router.delete("/{uuid}", response_model=DeviceOutPydantic)
@@ -74,4 +74,4 @@ async def remove_device(user_id: Annotated[dict, Depends(authorize)], uuid: str)
     async with in_transaction():
         device = await Device.get(uuid=uuid, user_id=user_id)
         await device.delete()
-    return device
+        return device
