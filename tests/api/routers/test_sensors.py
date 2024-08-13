@@ -269,3 +269,37 @@ class TestSensors:
         response_get = client.get(f"/sensors/?unit=unit", headers=header)
         assert response_get.status_code == 200
         assert len(response_get.json()) == 2
+
+    async def test_get_not_shared(self, client, header2, sensor):
+        get = client.get(f"/sensors/?uuid={sensor["uuid"]}", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []
+
+    async def test_get_device_not_shared(self, client, header2, device):
+        get = client.get(f"/sensors/?device_uuid={device["uuid"]}", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []
+
+    async def test_get_all_not_shared(self, client, header2, sensor):
+        get = client.get(f"/sensors/", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []
+
+    async def test_get_shared(self, client, header2, sensor_shared):
+        get = client.get(f"/sensors/?uuid={sensor_shared["uuid"]}", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == [sensor_shared]
+
+    async def test_get_device_shared(
+        self, client, header2, device_shared, sensor_shared, sensor_shared2
+    ):
+        get = client.get(
+            f"/sensors/?device_uuid={device_shared["uuid"]}", headers=header2
+        )
+        assert get.status_code == 200
+        assert len(get.json()) == 2
+
+    async def test_get_all_shared(self, client, header2, sensor_shared):
+        get = client.get(f"/sensors/", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []

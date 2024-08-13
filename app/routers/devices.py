@@ -23,13 +23,18 @@ async def get_device(
     name: str = "",
     is_shared: bool | None = None,
 ):
-    parameters = {
+    params_template = {
         "uuid": uuid,
         "name__contains": name,
         "is_shared": is_shared,
     }
-    filtered_parameters = {key: value for key, value in parameters.items() if value}
-    return await Device.filter(user_id=user_id, **filtered_parameters)
+    params = {key: value for key, value in params_template.items() if value}
+    async with in_transaction():
+        devices = await Device.filter(user_id=user_id, **params)
+        if not devices and is_shared is not False and uuid:
+            params["is_shared"] = True
+            devices = await Device.filter(**params)
+        return devices
 
 
 @router.post("/", response_model=DeviceOutPydantic)

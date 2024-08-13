@@ -24,14 +24,18 @@ async def get_sensor(
     name: str = "",
     unit: str = "",
 ):
-    parameters = {
+    params_template = {
         "uuid": uuid,
         "device_id": device_uuid,
         "name__contains": name,
         "unit__contains": unit,
     }
-    filtered_parameters = {key: value for key, value in parameters.items() if value}
-    return await Sensor.filter(user_id=user_id, **filtered_parameters)
+    params = {key: value for key, value in params_template.items() if value}
+    async with in_transaction():
+        sensors = await Sensor.filter(user_id=user_id, **params)
+        if not sensors and (uuid or device_uuid):
+            sensors = await Sensor.filter(**params, device__is_shared=True)
+        return sensors
 
 
 @router.post("/{device_uuid}", response_model=SensorOutPydantic)

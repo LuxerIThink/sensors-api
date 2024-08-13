@@ -16,6 +16,22 @@ async def init_db() -> None:
     await Tortoise.generate_schemas()
 
 
+def create_user(client, user_json):
+    response = client.post("/users/", json=user_json)
+    return response.json()
+
+
+def create_header(client, user_json) -> dict[str, str]:
+    auth_json = user_json.copy()
+    auth_json.pop("email")
+    login_header = {"Content-Type": "application/x-www-form-urlencoded"}
+    response = client.post("/actions/token/", data=auth_json, headers=login_header)
+    data = response.json()
+    token = f"{data['token_type']} {data['access_token']}"
+    header = {"Authorization": token}
+    return header
+
+
 @pytest.fixture(scope="session")
 def client():
     client = TestClient(app)
@@ -44,30 +60,44 @@ def user_json():
 
 
 @pytest.fixture(scope="session")
-def auth_json(user_json):
-    auth_json = user_json.copy()
-    auth_json.pop("email")
-    return auth_json
+def user2_json():
+    return {
+        "username": "username2",
+        "password": "Pa$Sw0rd",
+        "email": "xyz@email.com",
+    }
 
 
 @pytest.fixture(scope="function")
 def user(client, user_json):
-    response = client.post("/users/", json=user_json)
-    return response.json()
+    return create_user(client, user_json)
 
 
 @pytest.fixture(scope="function")
-def header(client, user, auth_json, user_json):
-    header = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = client.post("/actions/token/", data=auth_json, headers=header)
-    data = response.json()
-    token = f"{data['token_type']} {data['access_token']}"
-    header = {"Authorization": token}
-    return header
+def user2(client, user2_json):
+    return create_user(client, user2_json)
+
+
+@pytest.fixture(scope="function")
+def header(client, user, user_json):
+    return create_header(client, user_json)
+
+
+@pytest.fixture(scope="function")
+def header2(client, user2, user2_json):
+    return create_header(client, user2_json)
 
 
 @pytest.fixture(scope="session")
 def device_json():
+    return {
+        "name": "test_device",
+        "is_shared": False,
+    }
+
+
+@pytest.fixture(scope="session")
+def device_json_shared():
     return {
         "name": "test_device",
         "is_shared": True,
@@ -80,6 +110,12 @@ def device(client, header, device_json):
     return response.json()
 
 
+@pytest.fixture(scope="function")
+def device_shared(client, header, device_json_shared):
+    response = client.post("/devices/", headers=header, json=device_json_shared)
+    return response.json()
+
+
 @pytest.fixture(scope="session")
 def sensor_json():
     return {
@@ -88,10 +124,34 @@ def sensor_json():
     }
 
 
+@pytest.fixture(scope="session")
+def sensor2_json():
+    return {
+        "name": "test_sensor2",
+        "unit": "test_unit2",
+    }
+
+
 @pytest.fixture(scope="function")
 def sensor(client, header, device, sensor_json):
     response = client.post(
         "/sensors/" + device["uuid"], headers=header, json=sensor_json
+    )
+    return response.json()
+
+
+@pytest.fixture(scope="function")
+def sensor_shared(client, header, device_shared, sensor_json):
+    response = client.post(
+        "/sensors/" + device_shared["uuid"], headers=header, json=sensor_json
+    )
+    return response.json()
+
+
+@pytest.fixture(scope="function")
+def sensor_shared2(client, header, device_shared, sensor2_json):
+    response = client.post(
+        "/sensors/" + device_shared["uuid"], headers=header, json=sensor2_json
     )
     return response.json()
 
@@ -104,9 +164,33 @@ def measurement_json():
     }
 
 
+@pytest.fixture(scope="session")
+def measurement2_json():
+    return {
+        "time": "2023-01-19T12:58:03Z",
+        "value": 10.0,
+    }
+
+
 @pytest.fixture(scope="function")
 def measurement(client, header, sensor, measurement_json):
     response = client.post(
         "/measurements/" + sensor["uuid"], headers=header, json=measurement_json
+    )
+    return response.json()
+
+
+@pytest.fixture(scope="function")
+def measurement_shared(client, header, sensor_shared, measurement_json):
+    response = client.post(
+        "/measurements/" + sensor_shared["uuid"], headers=header, json=measurement_json
+    )
+    return response.json()
+
+
+@pytest.fixture(scope="function")
+def measurement_shared2(client, header, sensor_shared, measurement2_json):
+    response = client.post(
+        "/measurements/" + sensor_shared["uuid"], headers=header, json=measurement2_json
     )
     return response.json()

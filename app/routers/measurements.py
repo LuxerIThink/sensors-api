@@ -37,7 +37,13 @@ async def get_measurement(
         "value__lte": max_value,
     }
     filtered_parameters = {key: value for key, value in parameters.items() if value}
-    return await Measurement.filter(user_id=user_id, **filtered_parameters)
+    async with in_transaction():
+        measurements = await Measurement.filter(user_id=user_id, **filtered_parameters)
+        if not measurements and uuid or sensor_uuid:
+            measurements = await Measurement.filter(
+                **filtered_parameters, sensor__device__is_shared=True
+            )
+        return measurements
 
 
 @router.post("/{sensor_uuid}", response_model=MeasurementOutPydantic)

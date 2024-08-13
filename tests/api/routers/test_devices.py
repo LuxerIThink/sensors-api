@@ -123,9 +123,9 @@ class TestDevice:
 
         # Check response
         response = delete.json()
-        assert response["uuid"]
-        assert response["name"]
-        assert response["is_shared"]
+        assert response["uuid"] is not None
+        assert response["name"] is not None
+        assert response["is_shared"] is not None
 
         # Check existence
         get_after = client.get(f"/devices/?uuid={device['uuid']}", headers=header)
@@ -230,3 +230,59 @@ class TestDevice:
         get = client.get(f"/devices/?is_shared=True", headers=header)
         assert get.status_code == 200
         assert len(get.json()) == 2
+
+    async def test_get_not_shared(self, client, header, header2):
+        # Preparations
+        device_json = {
+            "name": "test_device",
+            "is_shared": False,
+        }
+        create = client.post("/devices/", headers=header, json=device_json)
+        assert create.status_code == 200
+
+        # Get by other user
+        get = client.get(f"/devices/?uuid={create.json()["uuid"]}", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []
+
+    async def test_get_all_not_shared(self, client, header, header2):
+        # Preparations
+        device_json = {
+            "name": "test_device",
+            "is_shared": False,
+        }
+        create = client.post("/devices/", headers=header, json=device_json)
+        assert create.status_code == 200
+
+        # Get by other user
+        get = client.get(f"/devices/", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []
+
+    async def test_get_shared(self, client, header, header2):
+        # Preparations
+        device_json = {
+            "name": "test_device",
+            "is_shared": True,
+        }
+        create = client.post("/devices/", headers=header, json=device_json)
+        assert create.status_code == 200
+
+        # Get by other user
+        get = client.get(f"/devices/?uuid={create.json()["uuid"]}", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == [create.json()]
+
+    async def test_get_all_shared(self, client, header, header2):
+        # Preparations
+        device_json = {
+            "name": "test_device",
+            "is_shared": True,
+        }
+        create = client.post("/devices/", headers=header, json=device_json)
+        assert create.status_code == 200
+
+        # Get by other user
+        get = client.get(f"/devices/", headers=header2)
+        assert get.status_code == 200
+        assert get.json() == []
