@@ -8,7 +8,7 @@ MeasurementInPydantic = pydantic_model_creator(
     exclude=("uuid", "sensor_id", "user", "user_id"),
 )
 
-MeasurementInPydanticAllOptional = pydantic_model_creator(
+MeasurementInOptionalPydantic = pydantic_model_creator(
     Measurement,
     name="MeasurementInOptional",
     exclude_readonly=True,

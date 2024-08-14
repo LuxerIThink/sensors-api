@@ -13,7 +13,7 @@ class User(AbstractBaseModel):
     email = fields.CharField(max_length=32, unique=True, validators=[EmailValidator()])
     devices = fields.ReverseRelation["Device"]
     sensors = fields.ReverseRelation["Sensor"]
-    measurement = fields.ReverseRelation["Measurement"]
+    measurements = fields.ReverseRelation["Measurement"]
 
     async def save(self, *args, **kwargs):
         password_hasher = PasswordHasher()

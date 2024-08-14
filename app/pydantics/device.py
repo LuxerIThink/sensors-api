@@ -8,7 +8,7 @@ DeviceInPydantic = pydantic_model_creator(
     exclude=("uuid", "user_id"),
 )
 
-DeviceInPydanticAllOptional = pydantic_model_creator(
+DeviceInOptionalPydantic = pydantic_model_creator(
     Device,
     name="DeviceInOptional",
     exclude_readonly=True,

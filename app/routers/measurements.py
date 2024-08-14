@@ -8,7 +8,7 @@ from app.models import Measurement
 from app.pydantics.measurement import (
     MeasurementsOutPydantic,
     MeasurementOutPydantic,
-    MeasurementInPydanticAllOptional,
+    MeasurementInOptionalPydantic,
     MeasurementInPydantic,
 )
 
@@ -76,7 +76,7 @@ async def edit_measurement(
 async def edit_measurement(
     user_id: Annotated[dict, Depends(authorize)],
     uuid: str,
-    measurement_in: MeasurementInPydanticAllOptional,
+    measurement_in: MeasurementInOptionalPydantic,
 ):
     measurement_dict = measurement_in.model_dump(exclude_none=True, exclude_unset=True)
     async with in_transaction():

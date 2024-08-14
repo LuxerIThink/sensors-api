@@ -7,7 +7,7 @@ from app.pydantics.device import (
     DeviceOutPydantic,
     DeviceInPydantic,
     DevicesOutPydantic,
-    DeviceInPydanticAllOptional,
+    DeviceInOptionalPydantic,
 )
 
 router = APIRouter(
@@ -63,7 +63,7 @@ async def edit_device(
 async def edit_partially_device(
     user_id: Annotated[dict, Depends(authorize)],
     uuid: str,
-    device_in: DeviceInPydanticAllOptional,
+    device_in: DeviceInOptionalPydantic,
 ):
     device_dict = device_in.model_dump(exclude_none=True, exclude_unset=True)
     async with in_transaction():

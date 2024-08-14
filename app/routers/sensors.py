@@ -7,7 +7,7 @@ from app.pydantics.sensor import (
     SensorOutPydantic,
     SensorInPydantic,
     SensorsOutPydantic,
-    SensorInPydanticAllOptional,
+    SensorInOptionalPydantic,
 )
 
 router = APIRouter(
@@ -68,7 +68,7 @@ async def edit_sensor(
 async def edit_partially_sensor(
     user_id: Annotated[dict, Depends(authorize)],
     uuid: str,
-    sensor_in: SensorInPydanticAllOptional,
+    sensor_in: SensorInOptionalPydantic,
 ):
     sensor_dict = sensor_in.model_dump(exclude_none=True, exclude_unset=True)
     async with in_transaction():

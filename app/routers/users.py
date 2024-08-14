@@ -6,7 +6,7 @@ from ..models.user import User
 from ..pydantics.user import (
     UserInPydantic,
     UserOutPydantic,
-    UserInPydanticAllOptional,
+    UserInOptionalPydantic,
     UsersOutPydantic,
 )
 
@@ -37,7 +37,7 @@ async def edit_user(uuid: Annotated[dict, Depends(authorize)], user_in: UserInPy
 
 @router.patch("/", response_model=UserOutPydantic)
 async def edit_partially_user(
-    uuid: Annotated[dict, Depends(authorize)], user_in: UserInPydanticAllOptional
+    uuid: Annotated[dict, Depends(authorize)], user_in: UserInOptionalPydantic
 ):
     user_dict = user_in.model_dump(exclude_none=True, exclude_unset=True)
     async with in_transaction():

@@ -9,7 +9,7 @@ UserInPydantic = pydantic_model_creator(
 )
 
 
-UserInPydanticAllOptional = pydantic_model_creator(
+UserInOptionalPydantic = pydantic_model_creator(
     User,
     name="UserInEdit",
     exclude_readonly=True,

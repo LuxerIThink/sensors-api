@@ -8,7 +8,7 @@ SensorInPydantic = pydantic_model_creator(
     exclude=("uuid", "device_id", "user", "user_id"),
 )
 
-SensorInPydanticAllOptional = pydantic_model_creator(
+SensorInOptionalPydantic = pydantic_model_creator(
     Sensor,
     name="SensorsInOptional",
     exclude_readonly=True,
