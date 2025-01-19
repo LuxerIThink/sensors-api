@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensors-api
+spec:
+  selector:
+    matchLabels:
+      app: sensors-api
+  template:
+    metadata:
+      labels:
+        app: sensors-api
+    spec:
+      containers:
+      - name: sensors-api
+        image: sensors-api
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: 1000Mi
+            cpu: 500m
+        ports:
+        - containerPort: 8086
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-secret
+              key: api-jwt
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-password
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-configmap
+              key: postgres-name
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-configmap
+              key: postgres-port
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-configmap
+              key: postgres-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+spec:
+  selector:
+    app: sensors-api
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 8086
+    targetPort: 8086
+    nodePort: 32000
