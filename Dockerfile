@@ -1,6 +1,6 @@
 FROM python:3.12.2-alpine3.19
 
-COPY requirements.txt .
+COPY src/requirements.txt .
 
 RUN echo "Installing packages..." \
   && apk update \
@@ -15,7 +15,7 @@ USER app_user
 
 WORKDIR /app
 
-COPY --chown=app_user:app_group . .
+COPY --chown=app_user:app_group src/ .
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8086"]
 
