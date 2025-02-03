@@ -5,7 +5,7 @@ designed to manage sensor data with PostgreSQL database.
 
 ## 📦 DB Structure:
 
-![Sensors API DB Strudture](docs%2FSensorsAPI.drawio.svg)
+![Sensors API DB Strudture](docs%2FSensorsAPI.png)
 
 ## ❇️ Key features:
 
